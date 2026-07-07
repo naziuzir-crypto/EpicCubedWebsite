@@ -19,7 +19,6 @@
             transition: background-color 0.1s ease;
         }
 
-        /* מסך יצירת הפרופיל */
         #login-screen, #menu-screen {
             background: rgba(255, 255, 255, 0.05);
             padding: 30px;
@@ -125,6 +124,14 @@
             font-weight: bold;
         }
 
+        #run-canvas {
+            background: #111;
+            border: 2px solid #00ffcc;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+            cursor: pointer;
+        }
+
         #leaderboard {
             margin-top: 20px;
             background: rgba(255, 255, 255, 0.05);
@@ -139,7 +146,6 @@
         
         .back-btn { position: absolute; top: 20px; left: 20px; background: #333; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; z-index: 100; }
         
-        /* עיצוב אזור מד הווליום */
         .volume-container {
             position: absolute;
             top: 20px;
@@ -154,10 +160,7 @@
             font-size: 14px;
             font-weight: bold;
         }
-        .volume-slider {
-            cursor: pointer;
-            accent-color: #00ffcc;
-        }
+        .volume-slider { cursor: pointer; accent-color: #00ffcc; }
     </style>
 </head>
 <body>
@@ -183,17 +186,18 @@
         <p>Choose a Game to Play:</p>
         <button class="btn" onclick="openGame('reaction')">1. Reaction Time! ⏱️</button>
         <button class="btn" onclick="openGame('clicker')">2. CubeClicker 🟦</button>
+        <button class="btn" style="background: linear-gradient(135deg, #00ffcc, #0055ff); color: black;" onclick="openGame('run')">3. Cube Run! 🏃‍♂️💨</button>
     </div>
 
     <div id="game-reaction" class="game-window">
         <button class="back-btn" onclick="backToMenu()">← Menu</button>
         <div id="reaction-game-zone" onclick="handleReactionClick()">
-            <div id="status-text" style="font-size: 24px; font-weight: bold;">Reaction Time Challenge!</div>
+            <div id="status-text" style="font-size: 24px; font-weight: bold;">Public Reaction Leaderboard!</div>
             <div id="result-text" style="font-size: 36px; color: #00ffcc; margin-top: 10px;"></div>
             <button id="start-btn" class="btn" style="width: auto; padding: 10px 30px;" onclick="startReactionGame(event)">START</button>
             <div id="leaderboard">
-                <h3>Leaderboard</h3>
-                <div id="leaderboard-entries"></div>
+                <h3>Global Top 3 🌍</h3>
+                <div id="leaderboard-entries">Loading scores...</div>
             </div>
         </div>
     </div>
@@ -210,6 +214,15 @@
             <button class="shop-btn" id="up-click-btn" onclick="buyUpgrade('click')">Upgrade Click (+1) | Cost: 15</button>
             <button class="shop-btn" id="up-auto-btn" onclick="buyUpgrade('auto')">Auto Clicker (+1 CPS) | Cost: 50</button>
         </div>
+    </div>
+
+    <div id="game-run" class="game-window">
+        <button class="back-btn" onclick="backToMenu()">← Menu</button>
+        <h2>Cube Run! 🏃‍♂️💨</h2>
+        <div id="run-score" style="font-size: 24px; font-weight: bold; color: #00ffcc; margin-bottom: 10px;">Score: 0</div>
+        <canvas id="run-canvas" width="480" height="200" onclick="playerJump()"></canvas>
+        <p style="font-size: 14px; color: #aaa; margin-top: 10px;">Click the screen or press SPACEBAR to Jump!</p>
+        <button id="run-start-btn" class="btn" style="width: auto; padding: 10px 30px;" onclick="startRunGame()">START RUN</button>
     </div>
 
     <script>
@@ -229,7 +242,7 @@
             document.getElementById('welcome-msg').innerText = "Hello, " + currentUsername;
             document.getElementById('login-screen').style.display = "none";
             document.getElementById('menu-screen').style.display = "block";
-            document.getElementById('vol-ctrl').style.display = "flex"; // מציג את מד הווליום
+            document.getElementById('vol-ctrl').style.display = "flex";
             
             startChillMusic();
         }
@@ -242,25 +255,30 @@
             } else if (gameType === 'clicker') {
                 document.getElementById('game-clicker').style.display = "flex";
                 updateClickerUI();
+            } else if (gameType === 'run') {
+                document.getElementById('game-run').style.display = "flex";
+                initRunGame();
             }
         }
 
         function backToMenu() {
             clearTimeout(timeoutId);
+            cancelAnimationFrame(runAnimationId);
             document.body.style.backgroundColor = "#000000";
             document.getElementById('game-reaction').style.display = "none";
             document.getElementById('game-clicker').style.display = "none";
-            document.getElementById('menu-screen').style.display = "block";
+            document.getElementById('game-run').style.display = "none";
             reactionState = "idle";
             document.getElementById('start-btn').style.display = "block";
             document.getElementById('status-text').innerText = "Reaction Time Challenge!";
             document.getElementById('result-text').innerText = "";
+            document.getElementById('menu-screen').style.display = "block";
         }
 
-        // --- סאונד ומוזיקת CHILL עם הגבר מטורף ---
+        // --- סאונד ומוזיקת CHILL ---
         let audioCtx = null;
         let mainGainNode = null;
-        let baseVolume = 0.15; // ווליום בסיס רגוע ל-100%
+        let baseVolume = 0.15;
 
         function startChillMusic() {
             if (audioCtx) return;
@@ -294,16 +312,14 @@
         function changeVolume(value) {
             document.getElementById('vol-txt').innerText = value + "%";
             if (!mainGainNode) return;
-            // חישוב הווליום לפי האחוזים (100% = 0.15, 500% = 0.75 שזה חזק מאוד!)
             const targetGain = (value / 100) * baseVolume;
             mainGainNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
         }
 
-        // --- לוגיקה: REACTION TIME ---
+        // --- לוגיקה: GLOBAL REACTION TIME ---
         let reactionState = "idle";
         let startTime = 0;
         let timeoutId = null;
-        let scores = JSON.parse(localStorage.getItem('reactionScores')) || [{ name: "🏆 EpicCubedHead", time: 0.350 }];
 
         function startReactionGame(event) {
             event.stopPropagation();
@@ -321,7 +337,7 @@
             }, randomTime);
         }
 
-        function handleReactionClick() {
+        async function handleReactionClick() {
             if (reactionState === "waiting") {
                 clearTimeout(timeoutId);
                 reactionState = "idle";
@@ -336,20 +352,39 @@
                 document.getElementById('result-text').innerText = diff + "s 🙂";
                 document.getElementById('start-btn').style.display = "block";
                 document.getElementById('start-btn').innerText = "TRY AGAIN";
-                scores.push({ name: currentUsername, time: diff });
-                updateLeaderboardDisplay();
+                
+                try {
+                    await fetch('/api/leaderboard', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: currentUsername, time: diff })
+                    });
+                    updateLeaderboardDisplay();
+                } catch (e) {
+                    console.error("Error saving score:", e);
+                }
             }
         }
 
-        function updateLeaderboardDisplay() {
-            scores.sort((a, b) => a.time - b.time);
-            scores = scores.slice(0, 3);
-            localStorage.setItem('reactionScores', JSON.stringify(scores));
+        async function updateLeaderboardDisplay() {
             const container = document.getElementById('leaderboard-entries');
-            container.innerHTML = "";
-            scores.forEach((s, i) => {
-                container.innerHTML += `<div class="entry"><span>${i+1}. ${s.name}</span><span>${s.time.toFixed(3)}s</span></div>`;
-            });
+            try {
+                const res = await fetch('/api/leaderboard');
+                const globalScores = await res.json();
+                
+                container.innerHTML = "";
+                if (globalScores.length === 0) {
+                    container.innerHTML = "No scores yet. Be the first!";
+                    return;
+                }
+                
+                globalScores.forEach((s, i) => {
+                    container.innerHTML += `<div class="entry"><span>${i+1}. ${s.name}</span><span>${s.time.toFixed(3)}s</span></div>`;
+                });
+            } catch (e) {
+                container.innerHTML = "Error loading top scores.";
+                console.error("Error fetching leaderboard:", e);
+            }
         }
 
         // --- לוגיקה: CUBE CLICKER ---
@@ -390,6 +425,135 @@
                 updateClickerUI();
             }
         }, 1000);
+
+        // --- לוגיקה: CUBE RUN ---
+        const canvas = document.getElementById('run-canvas');
+        const ctx = canvas.getContext('2d');
+        let runAnimationId = null;
+        let runScore = 0;
+        let runIsPlaying = false;
+
+        let runner = { x: 50, y: 140, w: 30, h: 30, vy: 0, gravity: 0.6, jumpPower: -11, isGrounded: true };
+        let obstacles = [];
+        let obstacleTimer = 0;
+        let gameSpeed = 5;
+
+        function initRunGame() {
+            runScore = 0;
+            gameSpeed = 5;
+            obstacles = [];
+            runner.y = 140;
+            runner.vy = 0;
+            runner.isGrounded = true;
+            document.getElementById('run-score').innerText = "Score: " + runScore;
+            document.getElementById('run-start-btn').style.display = "block";
+            drawRunInitial();
+        }
+
+        function drawRunInitial() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#555";
+            ctx.fillRect(0, 170, canvas.width, 30);
+            ctx.fillStyle = "#0055ff";
+            ctx.strokeStyle = "#00ffcc";
+            ctx.lineWidth = 2;
+            ctx.fillRect(runner.x, runner.y, runner.w, runner.h);
+            ctx.strokeRect(runner.x, runner.y, runner.w, runner.h);
+        }
+
+        function startRunGame() {
+            if (runIsPlaying) return;
+            runIsPlaying = true;
+            runScore = 0;
+            gameSpeed = 5;
+            obstacles = [];
+            document.getElementById('run-start-btn').style.display = "none";
+            updateRunGame();
+        }
+
+        function playerJump() {
+            if (runIsPlaying && runner.isGrounded) {
+                runner.vy = runner.jumpPower;
+                runner.isGrounded = false;
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === "Space" && document.getElementById('game-run').style.display === "flex") {
+                e.preventDefault();
+                playerJump();
+            }
+        });
+
+        function updateRunGame() {
+            if (!runIsPlaying) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            runner.vy += runner.gravity;
+            runner.y += runner.vy;
+
+            if (runner.y >= 140) {
+                runner.y = 140;
+                runner.vy = 0;
+                runner.isGrounded = true;
+            }
+
+            ctx.fillStyle = "#555";
+            ctx.fillRect(0, 170, canvas.width, 30);
+
+            ctx.fillStyle = "#0055ff";
+            ctx.strokeStyle = "#00ffcc";
+            ctx.fillRect(runner.x, runner.y, runner.w, runner.h);
+            ctx.strokeRect(runner.x, runner.y, runner.w, runner.h);
+
+            obstacleTimer++;
+            if (obstacleTimer > Math.floor(Math.random() * 40) + 60) {
+                obstacles.push({ x: canvas.width, y: 145, w: 20, h: 25 });
+                obstacleTimer = 0;
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].x -= gameSpeed;
+
+                ctx.fillStyle = "#ff0055";
+                ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].w, obstacles[i].h);
+
+                if (
+                    runner.x < obstacles[i].x + obstacles[i].w &&
+                    runner.x + runner.w > obstacles[i].x &&
+                    runner.y < obstacles[i].y + obstacles[i].h &&
+                    runner.y + runner.h > obstacles[i].y
+                ) {
+                    gameOverRun();
+                    return;
+                }
+
+                if (obstacles[i].x + obstacles[i].w < 0) {
+                    obstacles.splice(i, 1);
+                    runScore++;
+                    document.getElementById('run-score').innerText = "Score: " + runScore;
+                    if (runScore % 5 === 0) gameSpeed += 0.5;
+                }
+            }
+
+            runAnimationId = requestAnimationFrame(updateRunGame);
+        }
+
+        function gameOverRun() {
+            runIsPlaying = false;
+            cancelAnimationFrame(runAnimationId);
+            ctx.fillStyle = "rgba(0,0,0,0.7)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#ff0055";
+            ctx.font = "bold 30px 'Segoe UI'";
+            ctx.textAlign = "center";
+            ctx.fillText("GAME OVER 💀", canvas.width / 2, canvas.height / 2);
+            
+            document.getElementById('run-start-btn').style.display = "block";
+            document.getElementById('run-start-btn').innerText = "TRY AGAIN";
+        }
     </script>
 </body>
 </html>
