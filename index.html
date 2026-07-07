@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EpicCubedHead - Arcade Games</title>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            transition: background-color 0.1s ease;
+        }
+
+        /* מסך יצירת הפרופיל */
+        #login-screen, #menu-screen {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid #4ca1af;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(76, 161, 175, 0.3);
+        }
+
+        .input-field {
+            width: 90%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #4ca1af;
+            background: #111;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .avatar-selection {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .avatar-opt {
+            font-size: 30px;
+            padding: 8px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .selected-avatar { border-color: #00ffcc; background: rgba(0,255,204,0.1); }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            background: linear-gradient(135deg, #4ca1af, #2c3e50);
+            color: white;
+            box-shadow: 0 4px 10px rgba(76, 161, 175, 0.2);
+        }
+
+        .game-window {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        #reaction-game-zone {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .cube {
+            width: 120px;
+            height: 120px;
+            background-color: #0055ff;
+            border: 4px solid #00ffcc;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(0, 85, 255, 0.6);
+            cursor: pointer;
+            transition: transform 0.05s;
+            margin: 20px 0;
+        }
+        .cube:active { transform: scale(0.92); }
+
+        .shop {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #00ffcc;
+            width: 280px;
+            margin-top: 20px;
+        }
+        .shop-btn {
+            background: #222;
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+            padding: 8px;
+            width: 100%;
+            margin: 5px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #leaderboard {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #4ca1af;
+            width: 280px;
+            text-align: center;
+        }
+
+        .entry { display: flex; justify-content: space-between; font-size: 16px; margin: 5px 0; }
+        
+        .back-btn { position: absolute; top: 20px; left: 20px; background: #333; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; z-index: 100; }
+        
+        /* עיצוב אזור מד הווליום */
+        .volume-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            padding: 8px 15px;
+            border-radius: 5px;
+            display: none;
+            z-index: 100;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .volume-slider {
+            cursor: pointer;
+            accent-color: #00ffcc;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="vol-ctrl" class="volume-container">
+        <span>🎵 Vol: <span id="vol-txt">100%</span></span>
+        <input type="range" id="volume-slider" class="volume-slider" min="0" max="500" value="100" oninput="changeVolume(this.value)">
+    </div>
+
+    <div id="login-screen">
+        <h2>Create Arcade Profile</h2>
+        <input type="text" id="username-input" class="input-field" placeholder="Enter Nickname" maxlength="12">
+        <div class="avatar-selection">
+            <span class="avatar-opt selected-avatar" onclick="selectAvatar(this, '🤖')">🤖</span>
+            <span class="avatar-opt" onclick="selectAvatar(this, '🔥')">🔥</span>
+            <span class="avatar-opt" onclick="selectAvatar(this, '👑')">👑</span>
+        </div>
+        <button class="btn" onclick="createProfile()">ENTER ARCADE</button>
+    </div>
+
+    <div id="menu-screen" style="display: none;">
+        <h2 id="welcome-msg">Welcome</h2>
+        <p>Choose a Game to Play:</p>
+        <button class="btn" onclick="openGame('reaction')">1. Reaction Time! ⏱️</button>
+        <button class="btn" onclick="openGame('clicker')">2. CubeClicker 🟦</button>
+    </div>
+
+    <div id="game-reaction" class="game-window">
+        <button class="back-btn" onclick="backToMenu()">← Menu</button>
+        <div id="reaction-game-zone" onclick="handleReactionClick()">
+            <div id="status-text" style="font-size: 24px; font-weight: bold;">Reaction Time Challenge!</div>
+            <div id="result-text" style="font-size: 36px; color: #00ffcc; margin-top: 10px;"></div>
+            <button id="start-btn" class="btn" style="width: auto; padding: 10px 30px;" onclick="startReactionGame(event)">START</button>
+            <div id="leaderboard">
+                <h3>Leaderboard</h3>
+                <div id="leaderboard-entries"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-clicker" class="game-window">
+        <button class="back-btn" onclick="backToMenu()">← Menu</button>
+        <h2>CubeClicker 🟦</h2>
+        <div id="cube-score" style="font-size: 28px; font-weight: bold; color: #00ffcc;">Cubes: 0</div>
+        <div id="cube-cps" style="font-size: 16px; color: #aaa;">Per Second (CPS): 0</div>
+        <div class="cube" onclick="clickCube()"></div>
+        
+        <div class="shop">
+            <h3>Upgrades Shop</h3>
+            <button class="shop-btn" id="up-click-btn" onclick="buyUpgrade('click')">Upgrade Click (+1) | Cost: 15</button>
+            <button class="shop-btn" id="up-auto-btn" onclick="buyUpgrade('auto')">Auto Clicker (+1 CPS) | Cost: 50</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUsername = "";
+        let currentAvatar = "🤖";
+
+        function selectAvatar(element, avatarIcon) {
+            document.querySelectorAll('.avatar-opt').forEach(opt => opt.classList.remove('selected-avatar'));
+            element.classList.add('selected-avatar');
+            currentAvatar = avatarIcon;
+        }
+
+        function createProfile() {
+            const name = document.getElementById('username-input').value.trim();
+            if (name === "") { alert("Please enter a nickname!"); return; }
+            currentUsername = currentAvatar + " " + name;
+            document.getElementById('welcome-msg').innerText = "Hello, " + currentUsername;
+            document.getElementById('login-screen').style.display = "none";
+            document.getElementById('menu-screen').style.display = "block";
+            document.getElementById('vol-ctrl').style.display = "flex"; // מציג את מד הווליום
+            
+            startChillMusic();
+        }
+
+        function openGame(gameType) {
+            document.getElementById('menu-screen').style.display = "none";
+            if (gameType === 'reaction') {
+                document.getElementById('game-reaction').style.display = "flex";
+                updateLeaderboardDisplay();
+            } else if (gameType === 'clicker') {
+                document.getElementById('game-clicker').style.display = "flex";
+                updateClickerUI();
+            }
+        }
+
+        function backToMenu() {
+            clearTimeout(timeoutId);
+            document.body.style.backgroundColor = "#000000";
+            document.getElementById('game-reaction').style.display = "none";
+            document.getElementById('game-clicker').style.display = "none";
+            document.getElementById('menu-screen').style.display = "block";
+            reactionState = "idle";
+            document.getElementById('start-btn').style.display = "block";
+            document.getElementById('status-text').innerText = "Reaction Time Challenge!";
+            document.getElementById('result-text').innerText = "";
+        }
+
+        // --- סאונד ומוזיקת CHILL עם הגבר מטורף ---
+        let audioCtx = null;
+        let mainGainNode = null;
+        let baseVolume = 0.15; // ווליום בסיס רגוע ל-100%
+
+        function startChillMusic() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            mainGainNode = audioCtx.createGain();
+            mainGainNode.gain.setValueAtTime(baseVolume, audioCtx.currentTime);
+            mainGainNode.connect(audioCtx.destination);
+
+            const notes = [261.63, 293.66, 329.63, 392.00, 440.00]; 
+            
+            setInterval(() => {
+                if (!mainGainNode) return;
+                
+                const osc = audioCtx.createOscillator();
+                const noteGain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], audioCtx.currentTime);
+                
+                noteGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+                
+                osc.connect(noteGain);
+                noteGain.connect(mainGainNode);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.5);
+            }, 600);
+        }
+
+        function changeVolume(value) {
+            document.getElementById('vol-txt').innerText = value + "%";
+            if (!mainGainNode) return;
+            // חישוב הווליום לפי האחוזים (100% = 0.15, 500% = 0.75 שזה חזק מאוד!)
+            const targetGain = (value / 100) * baseVolume;
+            mainGainNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
+        }
+
+        // --- לוגיקה: REACTION TIME ---
+        let reactionState = "idle";
+        let startTime = 0;
+        let timeoutId = null;
+        let scores = JSON.parse(localStorage.getItem('reactionScores')) || [{ name: "🏆 EpicCubedHead", time: 0.350 }];
+
+        function startReactionGame(event) {
+            event.stopPropagation();
+            reactionState = "waiting";
+            document.body.style.backgroundColor = "#000000";
+            document.getElementById('status-text').innerText = "Wait for Blue...";
+            document.getElementById('result-text').innerText = "";
+            document.getElementById('start-btn').style.display = "none";
+            const randomTime = Math.floor(Math.random() * 4000) + 1500;
+            timeoutId = setTimeout(() => {
+                reactionState = "clickMe";
+                document.body.style.backgroundColor = "#0000ff";
+                document.getElementById('status-text').innerText = "CLICK NOW!!!";
+                startTime = window.performance.now();
+            }, randomTime);
+        }
+
+        function handleReactionClick() {
+            if (reactionState === "waiting") {
+                clearTimeout(timeoutId);
+                reactionState = "idle";
+                document.getElementById('status-text').innerText = "Too early!";
+                document.getElementById('start-btn').style.display = "block";
+            } else if (reactionState === "clickMe") {
+                const endTime = window.performance.now();
+                const diff = parseFloat(((endTime - startTime) / 1000).toFixed(3));
+                reactionState = "finished";
+                document.body.style.backgroundColor = "#000000";
+                document.getElementById('status-text').innerText = "Your Time:";
+                document.getElementById('result-text').innerText = diff + "s 🙂";
+                document.getElementById('start-btn').style.display = "block";
+                document.getElementById('start-btn').innerText = "TRY AGAIN";
+                scores.push({ name: currentUsername, time: diff });
+                updateLeaderboardDisplay();
+            }
+        }
+
+        function updateLeaderboardDisplay() {
+            scores.sort((a, b) => a.time - b.time);
+            scores = scores.slice(0, 3);
+            localStorage.setItem('reactionScores', JSON.stringify(scores));
+            const container = document.getElementById('leaderboard-entries');
+            container.innerHTML = "";
+            scores.forEach((s, i) => {
+                container.innerHTML += `<div class="entry"><span>${i+1}. ${s.name}</span><span>${s.time.toFixed(3)}s</span></div>`;
+            });
+        }
+
+        // --- לוגיקה: CUBE CLICKER ---
+        let cubes = 0;
+        let clickPower = 1;
+        let autoClickers = 0;
+        let clickCost = 15;
+        let autoCost = 50;
+
+        function clickCube() {
+            cubes += clickPower;
+            updateClickerUI();
+        }
+
+        function buyUpgrade(type) {
+            if (type === 'click' && cubes >= clickCost) {
+                cubes -= clickCost;
+                clickPower += 1;
+                clickCost = Math.floor(clickCost * 1.5);
+            } else if (type === 'auto' && cubes >= autoCost) {
+                cubes -= autoCost;
+                autoClickers += 1;
+                autoCost = Math.floor(autoCost * 1.6);
+            }
+            updateClickerUI();
+        }
+
+        function updateClickerUI() {
+            document.getElementById('cube-score').innerText = "Cubes: " + cubes;
+            document.getElementById('cube-cps').innerText = "Per Second (CPS): " + autoClickers;
+            document.getElementById('up-click-btn').innerText = `Upgrade Click (+1) | Cost: ${clickCost}`;
+            document.getElementById('up-auto-btn').innerText = `Auto Clicker (+1 CPS) | Cost: ${autoCost}`;
+        }
+
+        setInterval(() => {
+            if (autoClickers > 0 && document.getElementById('game-clicker').style.display === "flex") {
+                cubes += autoClickers;
+                updateClickerUI();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
