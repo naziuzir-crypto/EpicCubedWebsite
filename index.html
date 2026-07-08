@@ -208,7 +208,7 @@
         <h2>Cube Run vs Dragon! 🏃‍♂️💨🐉</h2>
         <div id="run-score" style="font-size: 24px; font-weight: bold; color: #ffcc00; margin-bottom: 10px;">Score: 0</div>
         <canvas id="run-canvas" width="550" height="220" onclick="playerJump()"></canvas>
-        <p style="font-size: 14px; color: #aaa; margin-top: 10px;">Click screen or press SPACEBAR to Jump over Spikes!</p>
+        <p style="font-size: 14px; color: #aaa; margin-top: 10px;">Click screen or press SPACEBAR/W to Jump over Spikes!</p>
         <button id="run-start-btn" class="btn" style="width: auto; padding: 10px 30px; background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="startRunGame()">START RUN</button>
     </div>
 
@@ -221,6 +221,7 @@
         let runAnimationId, runScore, runIsPlaying = false;
         let musicInterval = null;
 
+        // האזנה למקשים גלובלית לקפיצה
         window.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.key === 'w' || e.key === 'ArrowUp') {
                 if (document.getElementById('game-run').style.display === "flex") {
@@ -248,21 +249,22 @@
         }
 
         function initAudio() {
-            if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            mainGainNode = audioCtx.createGain();
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                mainGainNode = audioCtx.createGain();
+                mainGainNode.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             mainGainNode.gain.setValueAtTime(0.15 * userVolumeMultiplier, audioCtx.currentTime);
-            mainGainNode.connect(audioCtx.destination);
         }
 
         function changeVolume(value) {
             document.getElementById('vol-txt').innerText = value + "%";
             userVolumeMultiplier = value / 100;
-            if (audioCtx) {
-                if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-                if (mainGainNode) {
-                    mainGainNode.gain.setValueAtTime(0.15 * userVolumeMultiplier, audioCtx.currentTime);
-                }
+            if (mainGainNode && audioCtx) {
+                mainGainNode.gain.setValueAtTime(0.15 * userVolumeMultiplier, audioCtx.currentTime);
             }
         }
 
@@ -324,7 +326,6 @@
             drawRunScene(); 
         }
         
-        // ציור קוצים משולשים קלאסיים
         function drawSpike(x, y, width, height) {
             ctx.fillStyle = "#ff2255";
             ctx.beginPath();
@@ -333,8 +334,6 @@
             ctx.lineTo(x + width, y + height);
             ctx.closePath();
             ctx.fill();
-            
-            // קו מתאר שחור לקוצים למראה חד
             ctx.strokeStyle = "#000";
             ctx.lineWidth = 1;
             ctx.stroke();
@@ -342,22 +341,14 @@
         
         function drawRunScene() { 
             ctx.clearRect(0, 0, canvas.width, canvas.height); 
-            
-            // רצפה
             ctx.fillStyle = "#444"; ctx.fillRect(0, 180, canvas.width, 40); 
-            
-            // דרקון רודף מאחור משמאל
             ctx.font = "45px Arial"; ctx.fillText("🐉", 20, 165);
-            
-            // השחקן (הקובייה הכחולה)
             ctx.fillStyle = "#0055ff"; ctx.fillRect(runner.x, runner.y, runner.w, runner.h); 
             
-            // ציור המכשולים כקוצים משולשים ומכשולים שונים
             obstacles.forEach(obs => {
                 if (obs.type === 'spike') {
                     drawSpike(obs.x, obs.y, obs.w, obs.h);
                 } else {
-                    // מכשול בלוק רגיל לגיוון
                     ctx.fillStyle = "#ffaa00";
                     ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
                 }
@@ -368,11 +359,17 @@
             if (runIsPlaying) return; 
             runIsPlaying = true; 
             document.getElementById('run-start-btn').style.display = "none"; 
+            initAudio();
             startTenseMusic(); 
             updateRunGame(); 
         }
         
-        function playerJump() { if (runIsPlaying && runner.isGrounded) { runner.vy = runner.jumpPower; runner.isGrounded = false; } }
+        function playerJump() { 
+            if (runIsPlaying && runner.isGrounded) { 
+                runner.vy = runner.jumpPower; 
+                runner.isGrounded = false; 
+            } 
+        }
         
         function updateRunGame() {
             if (!runIsPlaying) return; 
@@ -382,7 +379,7 @@
             
             obstacleTimer++;
             if (obstacleTimer > Math.floor(Math.random() * 35) + 55) { 
-                let isSpike = Math.random() > 0.3; // 70% סיכוי לקוצים
+                let isSpike = Math.random() > 0.3;
                 if (isSpike) {
                     obstacles.push({ x: canvas.width, y: 150, w: 25, h: 30, type: 'spike' });
                 } else {
@@ -394,7 +391,6 @@
             for (let i = obstacles.length - 1; i >= 0; i--) { 
                 obstacles[i].x -= gameSpeed; 
                 
-                // בדיקת פגיעה מדויקת במכשול / קוץ
                 if (runner.x < obstacles[i].x + obstacles[i].w && 
                     runner.x + runner.w > obstacles[i].x && 
                     runner.y < obstacles[i].y + obstacles[i].h && 
@@ -425,8 +421,6 @@
         }
 
         function startTenseMusic() {
-            initAudio();
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
             stopMusic();
             musicInterval = setInterval(() => {
                 if (!runIsPlaying) return;
