@@ -81,49 +81,6 @@
             height: 100%;
         }
 
-        #reaction-game-zone {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .cube {
-            width: 120px;
-            height: 120px;
-            background-color: #0055ff;
-            border: 4px solid #00ffcc;
-            border-radius: 15px;
-            box-shadow: 0 0 25px rgba(0, 85, 255, 0.6);
-            cursor: pointer;
-            transition: transform 0.05s;
-            margin: 20px 0;
-        }
-        .cube:active { transform: scale(0.92); }
-
-        .shop {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #00ffcc;
-            width: 280px;
-            margin-top: 20px;
-        }
-        .shop-btn {
-            background: #222;
-            color: #00ffcc;
-            border: 1px solid #00ffcc;
-            padding: 8px;
-            width: 100%;
-            margin: 5px 0;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
         #run-canvas, #dragon-canvas {
             background: #111;
             border: 2px solid #00ffcc;
@@ -132,18 +89,6 @@
             cursor: pointer;
         }
 
-        #leaderboard {
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 15px;
-            border: 1px solid #4ca1af;
-            width: 280px;
-            text-align: center;
-        }
-
-        .entry { display: flex; justify-content: space-between; font-size: 16px; margin: 5px 0; }
-        
         .back-btn { position: absolute; top: 20px; left: 20px; background: #333; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; z-index: 100; }
         
         .volume-container {
@@ -182,39 +127,10 @@
     </div>
 
     <div id="menu-screen" style="display: none;">
-        <h2 id="welcome-msg">Welcome</h2>
+        <h2>Welcome</h2>
         <p>Choose a Game to Play:</p>
-        <button class="btn" onclick="openGame('reaction')">1. Reaction Time! ⏱️</button>
-        <button class="btn" onclick="openGame('clicker')">2. CubeClicker 🟦</button>
-        <button class="btn" onclick="openGame('run')">3. Cube Run! 🏃‍♂️💨</button>
-        <button class="btn" style="background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="openGame('dragon')">4. DRAGON RUN! 🐉🦈</button>
-    </div>
-
-    <div id="game-reaction" class="game-window">
-        <button class="back-btn" onclick="backToMenu()">← Menu</button>
-        <div id="reaction-game-zone" onclick="handleReactionClick()">
-            <div id="status-text" style="font-size: 24px; font-weight: bold;">Public Reaction Leaderboard!</div>
-            <div id="result-text" style="font-size: 36px; color: #00ffcc; margin-top: 10px;"></div>
-            <button id="start-btn" class="btn" style="width: auto; padding: 10px 30px;" onclick="startReactionGame(event)">START</button>
-            <div id="leaderboard">
-                <h3>Global Top 3 🌍</h3>
-                <div id="leaderboard-entries">Loading scores...</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="game-clicker" class="game-window">
-        <button class="back-btn" onclick="backToMenu()">← Menu</button>
-        <h2>CubeClicker 🟦</h2>
-        <div id="cube-score" style="font-size: 28px; font-weight: bold; color: #00ffcc;">Cubes: 0</div>
-        <div id="cube-cps" style="font-size: 16px; color: #aaa;">Per Second (CPS): 0</div>
-        <div class="cube" onclick="clickCube()"></div>
-        
-        <div class="shop">
-            <h3>Upgrades Shop</h3>
-            <button class="shop-btn" id="up-click-btn" onclick="buyUpgrade('click')">Upgrade Click (+1) | Cost: 15</button>
-            <button class="shop-btn" id="up-auto-btn" onclick="buyUpgrade('auto')">Auto Clicker (+1 CPS) | Cost: 50</button>
-        </div>
+        <button class="btn" onclick="openGame('run')">1. Cube Run! 🏃‍♂️💨</button>
+        <button class="btn" style="background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="openGame('dragon')">2. DRAGON RUN (WASD)! 🐉🦈</button>
     </div>
 
     <div id="game-run" class="game-window">
@@ -228,16 +144,20 @@
 
     <div id="game-dragon" class="game-window">
         <button class="back-btn" onclick="backToMenu()">← Menu</button>
-        <h2 style="color: #ff5500;">🐉 DRAGON RUN! 🦈</h2>
-        <div id="dragon-score" style="font-size: 24px; font-weight: bold; color: #ffcc00; margin-bottom: 10px;">Distance: 0m</div>
-        <canvas id="dragon-canvas" width="500" height="250" onclick="dragonJump()"></canvas>
-        <p style="font-size: 14px; color: #aaa; margin-top: 10px;">Press SPACEBAR to Jump over the Sharks! Escape the Dragon!</p>
+        <h2 style="color: #ff5500;">🐉 DRAGON MARATHON! 🦈</h2>
+        <div id="dragon-score" style="font-size: 24px; font-weight: bold; color: #ffcc00; margin-bottom: 10px;">Survival Time: 0s</div>
+        <canvas id="dragon-canvas" width="600" height="350"></canvas>
+        <p style="font-size: 14px; color: #aaa; margin-top: 10px;">Move with WASD keys. Click or press SPACEBAR to Jump!</p>
         <button id="dragon-start-btn" class="btn" style="width: auto; padding: 10px 30px; background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="startDragonGame()">ESCAPE NOW</button>
     </div>
 
     <script>
         let currentUsername = "";
         let currentAvatar = "🤖";
+        let audioCtx = null;
+        let mainGainNode = null;
+        let baseVolume = 0.15;
+        let dragonIsPlaying = false;
 
         function selectAvatar(element, avatarIcon) {
             document.querySelectorAll('.avatar-opt').forEach(opt => opt.classList.remove('selected-avatar'));
@@ -249,23 +169,30 @@
             const name = document.getElementById('username-input').value.trim();
             if (name === "") { alert("Please enter a nickname!"); return; }
             currentUsername = currentAvatar + " " + name;
-            document.getElementById('welcome-msg').innerText = "Hello, " + currentUsername;
+            document.getElementById('welcome-msg').innerText = "Welcome, " + currentUsername;
             document.getElementById('login-screen').style.display = "none";
             document.getElementById('menu-screen').style.display = "block";
             document.getElementById('vol-ctrl').style.display = "flex";
-            
-            startChillMusic();
+            startAudioContext();
+        }
+
+        function startAudioContext() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            mainGainNode = audioCtx.createGain();
+            mainGainNode.gain.setValueAtTime(baseVolume, audioCtx.currentTime);
+            mainGainNode.connect(audioCtx.destination);
+        }
+
+        function changeVolume(value) {
+            document.getElementById('vol-txt').innerText = value + "%";
+            if (!mainGainNode) return;
+            mainGainNode.gain.setValueAtTime((value / 100) * baseVolume, audioCtx.currentTime);
         }
 
         function openGame(gameType) {
             document.getElementById('menu-screen').style.display = "none";
-            if (gameType === 'reaction') {
-                document.getElementById('game-reaction').style.display = "flex";
-                updateLeaderboardDisplay();
-            } else if (gameType === 'clicker') {
-                document.getElementById('game-clicker').style.display = "flex";
-                updateClickerUI();
-            } else if (gameType === 'run') {
+            if (gameType === 'run') {
                 document.getElementById('game-run').style.display = "flex";
                 initRunGame();
             } else if (gameType === 'dragon') {
@@ -275,485 +202,187 @@
         }
 
         function backToMenu() {
-            clearTimeout(timeoutId);
             cancelAnimationFrame(runAnimationId);
             cancelAnimationFrame(dragonAnimationId);
             stopDragonMusic();
-            document.body.style.backgroundColor = "#000000";
-            document.getElementById('game-reaction').style.display = "none";
-            document.getElementById('game-clicker').style.display = "none";
-            document.getElementById('game-run').style.display = "none";
-            document.getElementById('game-dragon').style.display = "none";
-            reactionState = "idle";
-            document.getElementById('start-btn').style.display = "block";
-            document.getElementById('status-text').innerText = "Reaction Time Challenge!";
-            document.getElementById('result-text').innerText = "";
+            dragonIsPlaying = false;
+            document.querySelectorAll('.game-window').forEach(window => window.style.display = "none");
             document.getElementById('menu-screen').style.display = "block";
         }
 
-        // --- סאונד ומוזיקת CHILL ---
-        let audioCtx = null;
-        let mainGainNode = null;
-        let baseVolume = 0.15;
-
-        function startChillMusic() {
-            if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            mainGainNode = audioCtx.createGain();
-            mainGainNode.gain.setValueAtTime(baseVolume, audioCtx.currentTime);
-            mainGainNode.connect(audioCtx.destination);
-
-            const notes = [261.63, 293.66, 329.63, 392.00, 440.00]; 
-            
-            setInterval(() => {
-                if (!mainGainNode || dragonIsPlaying) return;
-                
-                const osc = audioCtx.createOscillator();
-                const noteGain = audioCtx.createGain();
-                
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], audioCtx.currentTime);
-                
-                noteGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-                
-                osc.connect(noteGain);
-                noteGain.connect(mainGainNode);
-                
-                osc.start();
-                osc.stop(audioCtx.currentTime + 1.5);
-            }, 600);
-        }
-
-        function changeVolume(value) {
-            document.getElementById('vol-txt').innerText = value + "%";
-            if (!mainGainNode) return;
-            const targetGain = (value / 100) * baseVolume;
-            mainGainNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
-        }
-
-        // --- לוגיקה: GLOBAL REACTION TIME ---
-        let reactionState = "idle";
-        let startTime = 0;
-        let timeoutId = null;
-
-        function startReactionGame(event) {
-            event.stopPropagation();
-            reactionState = "waiting";
-            document.body.style.backgroundColor = "#000000";
-            document.getElementById('status-text').innerText = "Wait for Blue...";
-            document.getElementById('result-text').innerText = "";
-            document.getElementById('start-btn').style.display = "none";
-            const randomTime = Math.floor(Math.random() * 4000) + 1500;
-            timeoutId = setTimeout(() => {
-                reactionState = "clickMe";
-                document.body.style.backgroundColor = "#0000ff";
-                document.getElementById('status-text').innerText = "CLICK NOW!!!";
-                startTime = window.performance.now();
-            }, randomTime);
-        }
-
-        async function handleReactionClick() {
-            if (reactionState === "waiting") {
-                clearTimeout(timeoutId);
-                reactionState = "idle";
-                document.getElementById('status-text').innerText = "Too early!";
-                document.getElementById('start-btn').style.display = "block";
-            } else if (reactionState === "clickMe") {
-                const endTime = window.performance.now();
-                const diff = parseFloat(((endTime - startTime) / 1000).toFixed(3));
-                reactionState = "finished";
-                document.body.style.backgroundColor = "#000000";
-                document.getElementById('status-text').innerText = "Your Time:";
-                document.getElementById('result-text').innerText = diff + "s 🙂";
-                document.getElementById('start-btn').style.display = "block";
-                document.getElementById('start-btn').innerText = "TRY AGAIN";
-                
-                try {
-                    await fetch('/api/leaderboard', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: currentUsername, time: diff })
-                    });
-                    updateLeaderboardDisplay();
-                } catch (e) {
-                    console.error("Error saving score:", e);
-                }
-            }
-        }
-
-        async function updateLeaderboardDisplay() {
-            const container = document.getElementById('leaderboard-entries');
-            try {
-                const res = await fetch('/api/leaderboard');
-                const globalScores = await res.json();
-                
-                container.innerHTML = "";
-                if (globalScores.length === 0) {
-                    container.innerHTML = "No scores yet. Be the first!";
-                    return;
-                }
-                
-                globalScores.forEach((s, i) => {
-                    container.innerHTML += `<div class="entry"><span>${i+1}. ${s.name}</span><span>${s.time.toFixed(3)}s</span></div>`;
-                });
-            } catch (e) {
-                container.innerHTML = "Error loading top scores.";
-                console.error("Error fetching leaderboard:", e);
-            }
-        }
-
-        // --- לוגיקה: CUBE CLICKER ---
-        let cubes = 0;
-        let clickPower = 1;
-        let autoClickers = 0;
-        let clickCost = 15;
-        let autoCost = 50;
-
-        function clickCube() {
-            cubes += clickPower;
-            updateClickerUI();
-        }
-
-        function buyUpgrade(type) {
-            if (type === 'click' && cubes >= clickCost) {
-                cubes -= clickCost;
-                clickPower += 1;
-                clickCost = Math.floor(clickCost * 1.5);
-            } else if (type === 'auto' && cubes >= autoCost) {
-                cubes -= autoCost;
-                autoClickers += 1;
-                autoCost = Math.floor(autoCost * 1.6);
-            }
-            updateClickerUI();
-        }
-
-        function updateClickerUI() {
-            document.getElementById('cube-score').innerText = "Cubes: " + cubes;
-            document.getElementById('cube-cps').innerText = "Per Second (CPS): " + autoClickers;
-            document.getElementById('up-click-btn').innerText = `Upgrade Click (+1) | Cost: ${clickCost}`;
-            document.getElementById('up-auto-btn').innerText = `Auto Clicker (+1 CPS) | Cost: ${autoCost}`;
-        }
-
-        setInterval(() => {
-            if (autoClickers > 0 && document.getElementById('game-clicker').style.display === "flex") {
-                cubes += autoClickers;
-                updateClickerUI();
-            }
-        }, 1000);
-
-        // --- לוגיקה: CUBE RUN ---
+        // --- CUBE RUN ---
         const canvas = document.getElementById('run-canvas');
         const ctx = canvas.getContext('2d');
-        let runAnimationId = null;
-        let runScore = 0;
-        let runIsPlaying = false;
-
+        let runAnimationId, runScore, runIsPlaying = false;
         let runner = { x: 50, y: 140, w: 30, h: 30, vy: 0, gravity: 0.6, jumpPower: -11, isGrounded: true };
         let obstacles = [];
         let obstacleTimer = 0;
         let gameSpeed = 5;
 
         function initRunGame() {
-            runScore = 0;
-            gameSpeed = 5;
-            obstacles = [];
-            runner.y = 140;
-            runner.vy = 0;
-            runner.isGrounded = true;
-            document.getElementById('run-score').innerText = "Score: " + runScore;
+            runScore = 0; gameSpeed = 5; obstacles = []; runner.y = 140; runner.vy = 0; runner.isGrounded = true;
+            document.getElementById('run-score').innerText = "Score: 0";
             document.getElementById('run-start-btn').style.display = "block";
+            document.getElementById('run-start-btn').innerText = "START RUN";
             drawRunInitial();
         }
-
         function drawRunInitial() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#555";
-            ctx.fillRect(0, 170, canvas.width, 30);
-            ctx.fillStyle = "#0055ff";
-            ctx.strokeStyle = "#00ffcc";
-            ctx.lineWidth = 2;
-            ctx.fillRect(runner.x, runner.y, runner.w, runner.h);
-            ctx.strokeRect(runner.x, runner.y, runner.w, runner.h);
+            ctx.fillStyle = "#555"; ctx.fillRect(0, 170, canvas.width, 30);
+            ctx.fillStyle = "#0055ff"; ctx.fillRect(runner.x, runner.y, runner.w, runner.h);
         }
-
         function startRunGame() {
             if (runIsPlaying) return;
             runIsPlaying = true;
-            runScore = 0;
-            gameSpeed = 5;
-            obstacles = [];
             document.getElementById('run-start-btn').style.display = "none";
             updateRunGame();
         }
-
         function playerJump() {
-            if (runIsPlaying && runner.isGrounded) {
-                runner.vy = runner.jumpPower;
-                runner.isGrounded = false;
-            }
+            if (runIsPlaying && runner.isGrounded) { runner.vy = runner.jumpPower; runner.isGrounded = false; }
         }
-
-        window.addEventListener('keydown', (e) => {
-            if (e.code === "Space" && document.getElementById('game-run').style.display === "flex") {
-                e.preventDefault();
-                playerJump();
-            }
-        });
-
         function updateRunGame() {
             if (!runIsPlaying) return;
-
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            runner.vy += runner.gravity;
-            runner.y += runner.vy;
-
-            if (runner.y >= 140) {
-                runner.y = 140;
-                runner.vy = 0;
-                runner.isGrounded = true;
-            }
-
-            ctx.fillStyle = "#555";
-            ctx.fillRect(0, 170, canvas.width, 30);
-
-            ctx.fillStyle = "#0055ff";
-            ctx.strokeStyle = "#00ffcc";
-            ctx.fillRect(runner.x, runner.y, runner.w, runner.h);
-            ctx.strokeRect(runner.x, runner.y, runner.w, runner.h);
-
+            runner.vy += runner.gravity; runner.y += runner.vy;
+            if (runner.y >= 140) { runner.y = 140; runner.vy = 0; runner.isGrounded = true; }
+            ctx.fillStyle = "#555"; ctx.fillRect(0, 170, canvas.width, 30);
+            ctx.fillStyle = "#0055ff"; ctx.fillRect(runner.x, runner.y, runner.w, runner.h);
             obstacleTimer++;
-            if (obstacleTimer > Math.floor(Math.random() * 40) + 60) {
-                obstacles.push({ x: canvas.width, y: 145, w: 20, h: 25 });
-                obstacleTimer = 0;
-            }
-
+            if (obstacleTimer > Math.floor(Math.random() * 40) + 60) { obstacles.push({ x: canvas.width, y: 145, w: 20, h: 25 }); obstacleTimer = 0; }
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 obstacles[i].x -= gameSpeed;
-
-                ctx.fillStyle = "#ff0055";
-                ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].w, obstacles[i].h);
-
-                if (
-                    runner.x < obstacles[i].x + obstacles[i].w &&
-                    runner.x + runner.w > obstacles[i].x &&
-                    runner.y < obstacles[i].y + obstacles[i].h &&
-                    runner.y + runner.h > obstacles[i].y
-                ) {
-                    gameOverRun();
-                    return;
-                }
-
-                if (obstacles[i].x + obstacles[i].w < 0) {
-                    obstacles.splice(i, 1);
-                    runScore++;
-                    document.getElementById('run-score').innerText = "Score: " + runScore;
-                    if (runScore % 5 === 0) gameSpeed += 0.5;
-                }
+                ctx.fillStyle = "#ff0055"; ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].w, obstacles[i].h);
+                if (runner.x < obstacles[i].x + obstacles[i].w && runner.x + runner.w > obstacles[i].x && runner.y < obstacles[i].y + obstacles[i].h && runner.y + runner.h > obstacles[i].y) { gameOverRun(); return; }
+                if (obstacles[i].x + obstacles[i].w < 0) { obstacles.splice(i, 1); runScore++; document.getElementById('run-score').innerText = "Score: " + runScore; if (runScore % 5 === 0) gameSpeed += 0.5; }
             }
-
             runAnimationId = requestAnimationFrame(updateRunGame);
         }
-
-        function gameOverRun() {
-            runIsPlaying = false;
-            cancelAnimationFrame(runAnimationId);
-            ctx.fillStyle = "rgba(0,0,0,0.7)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.fillStyle = "#ff0055";
-            ctx.font = "bold 30px 'Segoe UI'";
-            ctx.textAlign = "center";
+        function gameOverRun() { 
+            runIsPlaying = false; 
+            ctx.fillStyle = "rgba(0,0,0,0.7)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ff0055"; ctx.font = "bold 30px 'Segoe UI'"; ctx.textAlign = "center";
             ctx.fillText("GAME OVER 💀", canvas.width / 2, canvas.height / 2);
-            
-            document.getElementById('run-start-btn').style.display = "block";
-            document.getElementById('run-start-btn').innerText = "TRY AGAIN";
+            document.getElementById('run-start-btn').style.display = "block"; 
+            document.getElementById('run-start-btn').innerText = "TRY AGAIN"; 
         }
 
-        // --- לוגיקה: DRAGON RUN ---
+        // --- WASD DRAGON RUN ---
         const dCanvas = document.getElementById('dragon-canvas');
         const dCtx = dCanvas.getContext('2d');
-        let dragonAnimationId = null;
-        let dragonScore = 0;
-        let dragonIsPlaying = false;
-        let dragonMusicInterval = null;
+        let dragonAnimationId, dStartTime, dragonMusicInterval;
+        let dPlayer = { x: 250, y: 250, w: 25, h: 25, vy: 0, gravity: 0.6, jumpPower: -12, isGrounded: true, speed: 4 };
+        let dragon = { x: 20, y: 50, w: 45, h: 45, speed: 1.6 };
+        let dSharks = [];
+        let dSharkTimer = 0;
+        let dKeys = { w: false, a: false, s: false, d: false };
 
-        let dRunner = { x: 120, y: 150, w: 25, h: 25, vy: 0, gravity: 0.6, jumpPower: -11, isGrounded: true };
-        let sharks = [];
-        let sharkTimer = 0;
-        let dSpeed = 6;
-        let dragonX = 10;
+        dCanvas.addEventListener('click', dJump);
+
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('game-dragon').style.display === "flex") {
+                if (e.key === ' ' || e.key === 'w' || e.key === 'ArrowUp') { e.preventDefault(); dJump(); }
+                if (e.key === 'a' || e.key === 'ArrowLeft') dKeys.a = true;
+                if (e.key === 's' || e.key === 'ArrowDown') dKeys.s = true;
+                if (e.key === 'd' || e.key === 'ArrowRight') dKeys.d = true;
+            } else if (document.getElementById('game-run').style.display === "flex" && e.key === ' ') { e.preventDefault(); playerJump(); }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'a' || e.key === 'ArrowLeft') dKeys.a = false;
+            if (e.key === 's' || e.key === 'ArrowDown') dKeys.s = false;
+            if (e.key === 'd' || e.key === 'ArrowRight') dKeys.d = false;
+        });
+
+        function dJump() { if (dragonIsPlaying && dPlayer.isGrounded) { dPlayer.vy = dPlayer.jumpPower; dPlayer.isGrounded = false; } }
 
         function initDragonGame() {
-            dragonScore = 0;
-            dSpeed = 6;
-            sharks = [];
-            dRunner.y = 150;
-            dRunner.vy = 0;
-            dRunner.isGrounded = true;
-            document.getElementById('dragon-score').innerText = "Distance: 0m";
+            dragonIsPlaying = false; dPlayer.x = 250; dPlayer.y = 250; dPlayer.vy = 0;
+            dragon.x = 20; dragon.y = 50; dSharks = [];
+            document.getElementById('dragon-score').innerText = "Survival Time: 0s";
             document.getElementById('dragon-start-btn').style.display = "block";
-            drawDragonInitial();
-        }
-
-        function drawDragonInitial() {
-            dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height);
-            dCtx.fillStyle = "#8b5a2b";
-            dCtx.fillRect(0, 175, dCanvas.width, 15);
-            dCtx.fillStyle = "#0044ff";
-            dCtx.fillRect(0, 190, dCanvas.width, dCanvas.height - 190);
-            dCtx.fillStyle = "#0055ff";
-            dCtx.fillRect(dRunner.x, dRunner.y, dRunner.w, dRunner.h);
-            dCtx.font = "40px Arial";
-            dCtx.fillText("🐉", dragonX, 160);
+            drawDragonScene();
         }
 
         function startDragonGame() {
             if (dragonIsPlaying) return;
             dragonIsPlaying = true;
-            dragonScore = 0;
-            dSpeed = 6;
-            sharks = [];
+            dStartTime = Date.now();
             document.getElementById('dragon-start-btn').style.display = "none";
             startTenseMusic();
             updateDragonGame();
         }
 
-        function dragonJump() {
-            if (dragonIsPlaying && dRunner.isGrounded) {
-                dRunner.vy = dRunner.jumpPower;
-                dRunner.isGrounded = false;
-            }
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if (e.code === "Space") {
-                if (document.getElementById('game-dragon').style.display === "flex") {
-                    e.preventDefault();
-                    dragonJump();
-                }
-            }
-        });
-
-        function startTenseMusic() {
-            if (!audioCtx) return;
-            stopDragonMusic();
-            
-            dragonMusicInterval = setInterval(() => {
-                if (!dragonIsPlaying) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                
-                const notes = [110.00, 116.54]; 
-                osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], audioCtx.currentTime);
-                
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-                
-                osc.connect(gain);
-                gain.connect(mainGainNode);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.2);
-            }, 250);
-        }
-
-        function stopDragonMusic() {
-            if (dragonMusicInterval) {
-                clearInterval(dragonMusicInterval);
-                dragonMusicInterval = null;
-            }
+        function drawDragonScene() {
+            dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height);
+            dCtx.fillStyle = "#8b5a2b"; dCtx.fillRect(0, 275, dCanvas.width, 20);
+            dCtx.fillStyle = "#0044ff"; dCtx.fillRect(0, 295, dCanvas.width, dCanvas.height - 295);
+            dCtx.fillStyle = "#0055ff"; dCtx.fillRect(dPlayer.x, dPlayer.y, dPlayer.w, dPlayer.h);
+            dCtx.font = "50px Arial"; dCtx.fillText("🐉", dragon.x, dragon.y);
+            dCtx.font = "30px Arial"; dSharks.forEach(s => dCtx.fillText("🦈", s.x, s.y));
         }
 
         function updateDragonGame() {
             if (!dragonIsPlaying) return;
 
-            dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height);
+            let survivalTime = Math.floor((Date.now() - dStartTime) / 1000);
+            document.getElementById('dragon-score').innerText = "Survival Time: " + survivalTime + "s";
 
-            dRunner.vy += dRunner.gravity;
-            dRunner.y += dRunner.vy;
-
-            if (dRunner.y >= 150) {
-                dRunner.y = 150;
-                dRunner.vy = 0;
-                dRunner.isGrounded = true;
-            }
-
-            dCtx.fillStyle = "#8b5a2b";
-            dCtx.fillRect(0, 175, dCanvas.width, 15);
-            dCtx.fillStyle = "#0044ff";
-            dCtx.fillRect(0, 190, dCanvas.width, dCanvas.height - 190);
-
-            dCtx.fillStyle = "#0055ff";
-            dCtx.strokeStyle = "#00ffcc";
-            dCtx.fillRect(dRunner.x, dRunner.y, dRunner.w, dRunner.h);
-            dCtx.strokeRect(dRunner.x, dRunner.y, dRunner.w, dRunner.h);
-
-            dCtx.font = "45px Arial";
-            let dragonShake = dragonX + Math.sin(Date.now() / 100) * 5;
-            dCtx.fillText("🐉", dragonShake, 165);
+            if (dKeys.a && dPlayer.x > 0) dPlayer.x -= dPlayer.speed;
+            if (dKeys.d && dPlayer.x < dCanvas.width - dPlayer.w) dPlayer.x += dPlayer.speed;
             
-            if (Math.random() > 0.5) {
-                dCtx.fillStyle = "#ffcc00";
-                dCtx.fillRect(dragonShake + 45, 140, 20, 10);
+            dPlayer.vy += dPlayer.gravity; dPlayer.y += dPlayer.vy;
+            if (dPlayer.y >= 250) { dPlayer.y = 250; dPlayer.vy = 0; dPlayer.isGrounded = true; }
+
+            let angle = Math.atan2(dPlayer.y - dragon.y, dPlayer.x - dragon.x);
+            dragon.x += Math.cos(angle) * dragon.speed;
+            dragon.y += Math.sin(angle) * dragon.speed;
+
+            dSharkTimer++;
+            if (dSharkTimer > 60) {
+                dSharks.push({ x: dPlayer.x + (Math.random()*160-80), y: 330, vy: -9.5, g: 0.28, w: 25, h: 25 });
+                dSharkTimer = 0;
+            }
+            for (let i = dSharks.length - 1; i >= 0; i--) {
+                dSharks[i].vy += dSharks[i].g; dSharks[i].y += dSharks[i].vy;
+                if (dSharks[i].y > dCanvas.height) dSharks.splice(i, 1);
             }
 
-            sharkTimer++;
-            if (sharkTimer > Math.floor(Math.random() * 30) + 50) {
-                sharks.push({ x: dCanvas.width, y: 210, w: 25, h: 25, vy: -7, g: 0.25 });
-                sharkTimer = 0;
-            }
+            drawDragonScene();
 
-            for (let i = sharks.length - 1; i >= 0; i--) {
-                sharks[i].x -= dSpeed;
-                sharks[i].vy += sharks[i].g;
-                sharks[i].y += sharks[i].vy;
-
-                dCtx.font = "24px Arial";
-                dCtx.fillText("🦈", sharks[i].x, sharks[i].y);
-
-                if (
-                    dRunner.x < sharks[i].x + sharks[i].w &&
-                    dRunner.x + dRunner.w > sharks[i].x &&
-                    dRunner.y < sharks[i].y + sharks[i].h &&
-                    dRunner.y + dRunner.h > sharks[i].y
-                ) {
-                    gameOverDragon();
-                    return;
-                }
-
-                if (sharks[i].x + sharks[i].w < 0) {
-                    sharks.splice(i, 1);
-                    dragonScore++;
-                    document.getElementById('dragon-score').innerText = "Distance: " + (dragonScore * 5) + "m";
-                    if (dragonScore % 5 === 0) dSpeed += 0.6;
-                }
+            if (checkCollision(dPlayer, dragon) || dSharks.some(s => checkCollision(dPlayer, s))) {
+                gameOverDragon(survivalTime); return;
             }
 
             dragonAnimationId = requestAnimationFrame(updateDragonGame);
         }
 
-        function gameOverDragon() {
-            dragonIsPlaying = false;
-            stopDragonMusic();
-            cancelAnimationFrame(dragonAnimationId);
-            
-            dCtx.fillStyle = "rgba(0,0,0,0.85)";
-            dCtx.fillRect(0, 0, dCanvas.width, dCanvas.height);
-            
-            dCtx.fillStyle = "#ff3300";
-            dCtx.font = "bold 28px 'Segoe UI'";
-            dCtx.textAlign = "center";
-            dCtx.fillText("הדרקון תפס אותך! 💀", dCanvas.width / 2, dCanvas.height / 2 - 10);
-            
-            dCtx.fillStyle = "#ffffff";
-            dCtx.font = "16px 'Segoe UI'";
-            dCtx.fillText("מרחק ששרדת: " + (dragonScore * 5) + " מטרים", dCanvas.width / 2, dCanvas.height / 2 + 25);
+        function checkCollision(a, b) {
+            return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+        }
 
+        function gameOverDragon(time) {
+            dragonIsPlaying = false; stopDragonMusic();
+            dCtx.fillStyle = "rgba(0,0,0,0.85)"; dCtx.fillRect(0, 0, dCanvas.width, dCanvas.height);
+            dCtx.fillStyle = "#ff3300"; dCtx.font = "bold 35px Segoe UI"; dCtx.textAlign = "center";
+            dCtx.fillText("THE DRAGON CAUGHT YOU! 💀", dCanvas.width / 2, dCanvas.height / 2 - 10);
+            dCtx.fillStyle = "#ffffff"; dCtx.font = "18px Segoe UI";
+            dCtx.fillText("You survived for: " + time + " seconds", dCanvas.width / 2, dCanvas.height / 2 + 30);
             document.getElementById('dragon-start-btn').style.display = "block";
             document.getElementById('dragon-start-btn').innerText = "TRY AGAIN";
         }
+
+        function startTenseMusic() {
+            if (!audioCtx) return; stopDragonMusic();
+            dragonMusicInterval = setInterval(() => {
+                if (!dragonIsPlaying) return;
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(110 + (Math.random()>0.5?6.54:0), audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.connect(gain); gain.connect(mainGainNode);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            }, 250);
+        }
+        function stopDragonMusic() { if (dragonMusicInterval) clearInterval(dragonMusicInterval); }
     </script>
 </body>
 </html>
