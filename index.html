@@ -221,7 +221,6 @@
         let runAnimationId, runScore, runIsPlaying = false;
         let musicInterval = null;
 
-        // האזנה למקשים גלובלית לקפיצה
         window.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.key === 'w' || e.key === 'ArrowUp') {
                 if (document.getElementById('game-run').style.display === "flex") {
@@ -320,9 +319,11 @@
         let obstacles = []; let obstacleTimer = 0; let gameSpeed = 5;
         
         function initRunGame() { 
-            runScore = 0; gameSpeed = 5; obstacles = []; runner.y = 150; runner.vy = 0; runner.isGrounded = true; 
+            cancelAnimationFrame(runAnimationId);
+            runScore = 0; gameSpeed = 5; obstacles = []; runner.y = 150; runner.vy = 0; runner.isGrounded = true; obstacleTimer = 0;
             document.getElementById('run-score').innerText = "Score: 0"; 
             document.getElementById('run-start-btn').style.display = "block"; 
+            document.getElementById('run-start-btn').innerText = "START RUN";
             drawRunScene(); 
         }
         
@@ -356,7 +357,7 @@
         }
         
         function startRunGame() { 
-            if (runIsPlaying) return; 
+            cancelAnimationFrame(runAnimationId);
             runIsPlaying = true; 
             document.getElementById('run-start-btn').style.display = "none"; 
             initAudio();
@@ -413,9 +414,12 @@
         function gameOverRun() { 
             runIsPlaying = false; 
             stopMusic();
+            cancelAnimationFrame(runAnimationId);
             ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#ff3300"; ctx.font = "bold 30px Segoe UI"; ctx.textAlign = "center";
             ctx.fillText("THE DRAGON CAUGHT YOU! 💀", canvas.width / 2, canvas.height / 2);
+            
+            // איפוס וכפתור Try Again שעובד פיקס
             document.getElementById('run-start-btn').style.display = "block"; 
             document.getElementById('run-start-btn').innerText = "TRY AGAIN"; 
         }
@@ -423,7 +427,7 @@
         function startTenseMusic() {
             stopMusic();
             musicInterval = setInterval(() => {
-                if (!runIsPlaying) return;
+                if (!runIsPlaying || !audioCtx) return;
                 try {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
