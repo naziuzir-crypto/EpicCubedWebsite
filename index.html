@@ -127,9 +127,9 @@
     </div>
 
     <div id="menu-screen" style="display: none;">
-        <h2>Welcome</h2>
+        <h2 id="welcome-msg">Welcome</h2>
         <p>Choose a Game to Play:</p>
-        <button class="btn" onclick="openGame('run')">1. Cube Run! 🏃‍♂️💨</button>
+        <button class="btn" onclick="openGame('run')">1. Cube Run! 跑🏃‍♂️</button>
         <button class="btn" style="background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="openGame('dragon')">2. DRAGON RUN (WASD)! 🐉🦈</button>
     </div>
 
@@ -158,6 +158,8 @@
         let mainGainNode = null;
         let baseVolume = 0.15;
         let dragonIsPlaying = false;
+        let runAnimationId, runScore, runIsPlaying = false;
+        let dragonAnimationId, dStartTime, dragonMusicInterval;
 
         function selectAvatar(element, avatarIcon) {
             document.querySelectorAll('.avatar-opt').forEach(opt => opt.classList.remove('selected-avatar'));
@@ -173,7 +175,13 @@
             document.getElementById('login-screen').style.display = "none";
             document.getElementById('menu-screen').style.display = "block";
             document.getElementById('vol-ctrl').style.display = "flex";
-            startAudioContext();
+            
+            // הפעלה בטוחה של מערכת השמע בלי לתקוע את הדפדפן
+            try {
+                startAudioContext();
+            } catch(e) {
+                console.log("Audio not allowed yet");
+            }
         }
 
         function startAudioContext() {
@@ -213,7 +221,6 @@
         // --- CUBE RUN ---
         const canvas = document.getElementById('run-canvas');
         const ctx = canvas.getContext('2d');
-        let runAnimationId, runScore, runIsPlaying = false;
         let runner = { x: 50, y: 140, w: 30, h: 30, vy: 0, gravity: 0.6, jumpPower: -11, isGrounded: true };
         let obstacles = [];
         let obstacleTimer = 0;
@@ -269,7 +276,6 @@
         // --- WASD DRAGON RUN ---
         const dCanvas = document.getElementById('dragon-canvas');
         const dCtx = dCanvas.getContext('2d');
-        let dragonAnimationId, dStartTime, dragonMusicInterval;
         let dPlayer = { x: 250, y: 250, w: 25, h: 25, vy: 0, gravity: 0.6, jumpPower: -12, isGrounded: true, speed: 4 };
         let dragon = { x: 20, y: 50, w: 45, h: 45, speed: 1.6 };
         let dSharks = [];
@@ -372,6 +378,7 @@
         }
 
         function startTenseMusic() {
+            startAudioContext();
             if (!audioCtx) return; stopDragonMusic();
             dragonMusicInterval = setInterval(() => {
                 if (!dragonIsPlaying) return;
