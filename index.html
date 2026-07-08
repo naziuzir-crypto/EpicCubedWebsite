@@ -124,7 +124,7 @@
             font-weight: bold;
         }
 
-        #run-canvas {
+        #run-canvas, #dragon-canvas {
             background: #111;
             border: 2px solid #00ffcc;
             border-radius: 10px;
@@ -186,7 +186,8 @@
         <p>Choose a Game to Play:</p>
         <button class="btn" onclick="openGame('reaction')">1. Reaction Time! ⏱️</button>
         <button class="btn" onclick="openGame('clicker')">2. CubeClicker 🟦</button>
-        <button class="btn" style="background: linear-gradient(135deg, #00ffcc, #0055ff); color: black;" onclick="openGame('run')">3. Cube Run! 🏃‍♂️💨</button>
+        <button class="btn" onclick="openGame('run')">3. Cube Run! 🏃‍♂️💨</button>
+        <button class="btn" style="background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="openGame('dragon')">4. DRAGON RUN! 🐉🦈</button>
     </div>
 
     <div id="game-reaction" class="game-window">
@@ -225,6 +226,15 @@
         <button id="run-start-btn" class="btn" style="width: auto; padding: 10px 30px;" onclick="startRunGame()">START RUN</button>
     </div>
 
+    <div id="game-dragon" class="game-window">
+        <button class="back-btn" onclick="backToMenu()">← Menu</button>
+        <h2 style="color: #ff5500;">🐉 DRAGON RUN! 🦈</h2>
+        <div id="dragon-score" style="font-size: 24px; font-weight: bold; color: #ffcc00; margin-bottom: 10px;">Distance: 0m</div>
+        <canvas id="dragon-canvas" width="500" height="250" onclick="dragonJump()"></canvas>
+        <p style="font-size: 14px; color: #aaa; margin-top: 10px;">Press SPACEBAR to Jump over the Sharks! Escape the Dragon!</p>
+        <button id="dragon-start-btn" class="btn" style="width: auto; padding: 10px 30px; background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="startDragonGame()">ESCAPE NOW</button>
+    </div>
+
     <script>
         let currentUsername = "";
         let currentAvatar = "🤖";
@@ -258,16 +268,22 @@
             } else if (gameType === 'run') {
                 document.getElementById('game-run').style.display = "flex";
                 initRunGame();
+            } else if (gameType === 'dragon') {
+                document.getElementById('game-dragon').style.display = "flex";
+                initDragonGame();
             }
         }
 
         function backToMenu() {
             clearTimeout(timeoutId);
             cancelAnimationFrame(runAnimationId);
+            cancelAnimationFrame(dragonAnimationId);
+            stopDragonMusic();
             document.body.style.backgroundColor = "#000000";
             document.getElementById('game-reaction').style.display = "none";
             document.getElementById('game-clicker').style.display = "none";
             document.getElementById('game-run').style.display = "none";
+            document.getElementById('game-dragon').style.display = "none";
             reactionState = "idle";
             document.getElementById('start-btn').style.display = "block";
             document.getElementById('status-text').innerText = "Reaction Time Challenge!";
@@ -290,7 +306,7 @@
             const notes = [261.63, 293.66, 329.63, 392.00, 440.00]; 
             
             setInterval(() => {
-                if (!mainGainNode) return;
+                if (!mainGainNode || dragonIsPlaying) return;
                 
                 const osc = audioCtx.createOscillator();
                 const noteGain = audioCtx.createGain();
@@ -553,6 +569,190 @@
             
             document.getElementById('run-start-btn').style.display = "block";
             document.getElementById('run-start-btn').innerText = "TRY AGAIN";
+        }
+
+        // --- לוגיקה: DRAGON RUN ---
+        const dCanvas = document.getElementById('dragon-canvas');
+        const dCtx = dCanvas.getContext('2d');
+        let dragonAnimationId = null;
+        let dragonScore = 0;
+        let dragonIsPlaying = false;
+        let dragonMusicInterval = null;
+
+        let dRunner = { x: 120, y: 150, w: 25, h: 25, vy: 0, gravity: 0.6, jumpPower: -11, isGrounded: true };
+        let sharks = [];
+        let sharkTimer = 0;
+        let dSpeed = 6;
+        let dragonX = 10;
+
+        function initDragonGame() {
+            dragonScore = 0;
+            dSpeed = 6;
+            sharks = [];
+            dRunner.y = 150;
+            dRunner.vy = 0;
+            dRunner.isGrounded = true;
+            document.getElementById('dragon-score').innerText = "Distance: 0m";
+            document.getElementById('dragon-start-btn').style.display = "block";
+            drawDragonInitial();
+        }
+
+        function drawDragonInitial() {
+            dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height);
+            dCtx.fillStyle = "#8b5a2b";
+            dCtx.fillRect(0, 175, dCanvas.width, 15);
+            dCtx.fillStyle = "#0044ff";
+            dCtx.fillRect(0, 190, dCanvas.width, dCanvas.height - 190);
+            dCtx.fillStyle = "#0055ff";
+            dCtx.fillRect(dRunner.x, dRunner.y, dRunner.w, dRunner.h);
+            dCtx.font = "40px Arial";
+            dCtx.fillText("🐉", dragonX, 160);
+        }
+
+        function startDragonGame() {
+            if (dragonIsPlaying) return;
+            dragonIsPlaying = true;
+            dragonScore = 0;
+            dSpeed = 6;
+            sharks = [];
+            document.getElementById('dragon-start-btn').style.display = "none";
+            startTenseMusic();
+            updateDragonGame();
+        }
+
+        function dragonJump() {
+            if (dragonIsPlaying && dRunner.isGrounded) {
+                dRunner.vy = dRunner.jumpPower;
+                dRunner.isGrounded = false;
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === "Space") {
+                if (document.getElementById('game-dragon').style.display === "flex") {
+                    e.preventDefault();
+                    dragonJump();
+                }
+            }
+        });
+
+        function startTenseMusic() {
+            if (!audioCtx) return;
+            stopDragonMusic();
+            
+            dragonMusicInterval = setInterval(() => {
+                if (!dragonIsPlaying) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                
+                const notes = [110.00, 116.54]; 
+                osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                
+                osc.connect(gain);
+                gain.connect(mainGainNode);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            }, 250);
+        }
+
+        function stopDragonMusic() {
+            if (dragonMusicInterval) {
+                clearInterval(dragonMusicInterval);
+                dragonMusicInterval = null;
+            }
+        }
+
+        function updateDragonGame() {
+            if (!dragonIsPlaying) return;
+
+            dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height);
+
+            dRunner.vy += dRunner.gravity;
+            dRunner.y += dRunner.vy;
+
+            if (dRunner.y >= 150) {
+                dRunner.y = 150;
+                dRunner.vy = 0;
+                dRunner.isGrounded = true;
+            }
+
+            dCtx.fillStyle = "#8b5a2b";
+            dCtx.fillRect(0, 175, dCanvas.width, 15);
+            dCtx.fillStyle = "#0044ff";
+            dCtx.fillRect(0, 190, dCanvas.width, dCanvas.height - 190);
+
+            dCtx.fillStyle = "#0055ff";
+            dCtx.strokeStyle = "#00ffcc";
+            dCtx.fillRect(dRunner.x, dRunner.y, dRunner.w, dRunner.h);
+            dCtx.strokeRect(dRunner.x, dRunner.y, dRunner.w, dRunner.h);
+
+            dCtx.font = "45px Arial";
+            let dragonShake = dragonX + Math.sin(Date.now() / 100) * 5;
+            dCtx.fillText("🐉", dragonShake, 165);
+            
+            if (Math.random() > 0.5) {
+                dCtx.fillStyle = "#ffcc00";
+                dCtx.fillRect(dragonShake + 45, 140, 20, 10);
+            }
+
+            sharkTimer++;
+            if (sharkTimer > Math.floor(Math.random() * 30) + 50) {
+                sharks.push({ x: dCanvas.width, y: 210, w: 25, h: 25, vy: -7, g: 0.25 });
+                sharkTimer = 0;
+            }
+
+            for (let i = sharks.length - 1; i >= 0; i--) {
+                sharks[i].x -= dSpeed;
+                sharks[i].vy += sharks[i].g;
+                sharks[i].y += sharks[i].vy;
+
+                dCtx.font = "24px Arial";
+                dCtx.fillText("🦈", sharks[i].x, sharks[i].y);
+
+                if (
+                    dRunner.x < sharks[i].x + sharks[i].w &&
+                    dRunner.x + dRunner.w > sharks[i].x &&
+                    dRunner.y < sharks[i].y + sharks[i].h &&
+                    dRunner.y + dRunner.h > sharks[i].y
+                ) {
+                    gameOverDragon();
+                    return;
+                }
+
+                if (sharks[i].x + sharks[i].w < 0) {
+                    sharks.splice(i, 1);
+                    dragonScore++;
+                    document.getElementById('dragon-score').innerText = "Distance: " + (dragonScore * 5) + "m";
+                    if (dragonScore % 5 === 0) dSpeed += 0.6;
+                }
+            }
+
+            dragonAnimationId = requestAnimationFrame(updateDragonGame);
+        }
+
+        function gameOverDragon() {
+            dragonIsPlaying = false;
+            stopDragonMusic();
+            cancelAnimationFrame(dragonAnimationId);
+            
+            dCtx.fillStyle = "rgba(0,0,0,0.85)";
+            dCtx.fillRect(0, 0, dCanvas.width, dCanvas.height);
+            
+            dCtx.fillStyle = "#ff3300";
+            dCtx.font = "bold 28px 'Segoe UI'";
+            dCtx.textAlign = "center";
+            dCtx.fillText("הדרקון תפס אותך! 💀", dCanvas.width / 2, dCanvas.height / 2 - 10);
+            
+            dCtx.fillStyle = "#ffffff";
+            dCtx.font = "16px 'Segoe UI'";
+            dCtx.fillText("מרחק ששרדת: " + (dragonScore * 5) + " מטרים", dCanvas.width / 2, dCanvas.height / 2 + 25);
+
+            document.getElementById('dragon-start-btn').style.display = "block";
+            document.getElementById('dragon-start-btn').innerText = "TRY AGAIN";
         }
     </script>
 </body>
