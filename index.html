@@ -228,19 +228,19 @@
         let currentAvatar = "🤖";
         let audioCtx = null;
         let mainGainNode = null;
-        let baseVolume = 0.25; // ווליום מוגבר מראש כבסיס לחוויה טובה יותר
+        let baseVolume = 0.25;
         let dragonIsPlaying = false;
         let runAnimationId, runScore, runIsPlaying = false;
         let dragonAnimationId, dStartTime, dragonMusicInterval;
 
-        // מערכת קליטת מקשים חלקה ל-WASD ותנועה
         let dKeys = { w: false, a: false, s: false, d: false };
         window.addEventListener('keydown', (e) => {
             let key = e.key.toLowerCase();
             if (key === 'a' || e.key === 'ArrowLeft') dKeys.a = true;
             if (key === 's' || e.key === 'ArrowDown') dKeys.s = true;
             if (key === 'd' || e.key === 'ArrowRight') dKeys.d = true;
-            if (key === 'w' || e.key === 'ArrowUp' || key === ' ') {
+            if (key === 'w' || e.key === 'ArrowUp') dKeys.w = true;
+            if (key === ' ') {
                 if (document.getElementById('game-dragon').style.display === "flex") { e.preventDefault(); dJump(); }
                 if (document.getElementById('game-run').style.display === "flex") { e.preventDefault(); playerJump(); }
             }
@@ -250,6 +250,7 @@
             if (key === 'a' || e.key === 'ArrowLeft') dKeys.a = false;
             if (key === 's' || e.key === 'ArrowDown') dKeys.s = false;
             if (key === 'd' || e.key === 'ArrowRight') dKeys.d = false;
+            if (key === 'w' || e.key === 'ArrowUp') dKeys.w = false;
         });
 
         function selectAvatar(element, avatarIcon) {
@@ -280,69 +281,36 @@
         function changeVolume(value) {
             document.getElementById('vol-txt').innerText = value + "%";
             if (!mainGainNode) return;
-            // חישוב המאפשר להגיע עד פי 20 עוצמה (2000%)
-            let multiplier = value / 100;
-            mainGainNode.gain.setValueAtTime(baseVolume * multiplier, audioCtx.currentTime);
+            mainGainNode.gain.setValueAtTime(baseVolume * (value / 100), audioCtx.currentTime);
         }
 
         function openGame(gameType) {
             document.querySelectorAll('.game-window').forEach(w => w.style.display = "none");
             document.getElementById('menu-screen').style.display = "none";
-            if (gameType === 'reaction') {
-                document.getElementById('game-reaction').style.display = "flex";
-            } else if (gameType === 'clicker') {
-                document.getElementById('game-clicker').style.display = "flex";
-                updateClickerUI();
-            } else if (gameType === 'run') {
-                document.getElementById('game-run').style.display = "flex";
-                initRunGame();
-            } else if (gameType === 'dragon') {
-                document.getElementById('game-dragon').style.display = "flex";
-                initDragonGame();
-            }
+            if (gameType === 'reaction') { document.getElementById('game-reaction').style.display = "flex"; }
+            else if (gameType === 'clicker') { document.getElementById('game-clicker').style.display = "flex"; updateClickerUI(); }
+            else if (gameType === 'run') { document.getElementById('game-run').style.display = "flex"; initRunGame(); }
+            else if (gameType === 'dragon') { document.getElementById('game-dragon').style.display = "flex"; initDragonGame(); }
         }
 
         function backToMenu() {
-            clearTimeout(timeoutId);
-            cancelAnimationFrame(runAnimationId);
-            cancelAnimationFrame(dragonAnimationId);
-            stopDragonMusic();
-            dragonIsPlaying = false;
-            runIsPlaying = false;
-            reactionState = "idle";
-            document.getElementById('start-btn').style.display = "block";
-            document.getElementById('status-text').innerText = "Reaction Time Challenge!";
-            document.getElementById('result-text').innerText = "";
-            document.querySelectorAll('.game-window').forEach(window => window.style.display = "none");
+            clearTimeout(timeoutId); cancelAnimationFrame(runAnimationId); cancelAnimationFrame(dragonAnimationId);
+            stopDragonMusic(); dragonIsPlaying = false; runIsPlaying = false; reactionState = "idle";
+            document.getElementById('start-btn').style.display = "block"; document.getElementById('status-text').innerText = "Reaction Time Challenge!";
+            document.getElementById('result-text').innerText = ""; document.querySelectorAll('.game-window').forEach(window => window.style.display = "none");
             document.getElementById('menu-screen').style.display = "block";
         }
 
-        // --- REACTION TIME (FIXED LOCAL) ---
+        // --- REACTION TIME ---
         let reactionState = "idle"; let startTime = 0; let timeoutId = null;
         function startReactionGame(event) {
             event.stopPropagation(); reactionState = "waiting";
-            document.getElementById('status-text').innerText = "Wait for Blue...";
-            document.getElementById('result-text').innerText = "";
-            document.getElementById('start-btn').style.display = "none";
-            timeoutId = setTimeout(() => {
-                reactionState = "clickMe";
-                document.getElementById('status-text').innerText = "CLICK NOW!!!";
-                startTime = window.performance.now();
-            }, Math.floor(Math.random() * 3000) + 1000);
+            document.getElementById('status-text').innerText = "Wait for Blue..."; document.getElementById('result-text').innerText = ""; document.getElementById('start-btn').style.display = "none";
+            timeoutId = setTimeout(() => { reactionState = "clickMe"; document.getElementById('status-text').innerText = "CLICK NOW!!!"; startTime = window.performance.now(); }, Math.floor(Math.random() * 3000) + 1000);
         }
         document.getElementById('game-reaction').addEventListener('click', () => {
-            if (reactionState === "waiting") {
-                clearTimeout(timeoutId); reactionState = "idle";
-                document.getElementById('status-text').innerText = "Too early!";
-                document.getElementById('start-btn').style.display = "block";
-            } else if (reactionState === "clickMe") {
-                let diff = parseFloat(((window.performance.now() - startTime) / 1000).toFixed(3));
-                reactionState = "finished";
-                document.getElementById('status-text').innerText = "Your Time:";
-                document.getElementById('result-text').innerText = diff + "s";
-                document.getElementById('start-btn').style.display = "block";
-                document.getElementById('leaderboard-entries').innerText = `Last score: ${diff}s!`;
-            }
+            if (reactionState === "waiting") { clearTimeout(timeoutId); reactionState = "idle"; document.getElementById('status-text').innerText = "Too early!"; document.getElementById('start-btn').style.display = "block"; }
+            else if (reactionState === "clickMe") { let diff = parseFloat(((window.performance.now() - startTime) / 1000).toFixed(3)); reactionState = "finished"; document.getElementById('status-text').innerText = "Your Time:"; document.getElementById('result-text').innerText = diff + "s"; document.getElementById('start-btn').style.display = "block"; document.getElementById('leaderboard-entries').innerText = `Last score: ${diff}s!`; }
         });
 
         // --- CUBE CLICKER ---
@@ -353,74 +321,51 @@
             else if (type === 'auto' && cubes >= autoCost) { cubes -= autoCost; autoClickers += 1; autoCost = Math.floor(autoCost * 1.6); }
             updateClickerUI();
         }
-        function updateClickerUI() {
-            document.getElementById('cube-score').innerText = "Cubes: " + cubes;
-            document.getElementById('cube-cps').innerText = "Per Second (CPS): " + autoClickers;
-            document.getElementById('up-click-btn').innerText = `Upgrade Click (+1) | Cost: ${clickCost}`;
-            document.getElementById('up-auto-btn').innerText = `Auto Clicker (+1 CPS) | Cost: ${autoCost}`;
-        }
+        function updateClickerUI() { document.getElementById('cube-score').innerText = "Cubes: " + cubes; document.getElementById('cube-cps').innerText = "Per Second (CPS): " + autoClickers; document.getElementById('up-click-btn').innerText = `Upgrade Click (+1) | Cost: ${clickCost}`; document.getElementById('up-auto-btn').innerText = `Auto Clicker (+1 CPS) | Cost: ${autoCost}`; }
         setInterval(() => { if (autoClickers > 0 && document.getElementById('game-clicker').style.display === "flex") { cubes += autoClickers; updateClickerUI(); } }, 1000);
 
         // --- CUBE RUN ---
         const canvas = document.getElementById('run-canvas'); const ctx = canvas.getContext('2d');
         let runner = { x: 50, y: 140, w: 30, h: 30, vy: 0, gravity: 0.6, jumpPower: -11, isGrounded: true };
         let obstacles = []; let obstacleTimer = 0; let gameSpeed = 5;
-        function initRunGame() {
-            runScore = 0; gameSpeed = 5; obstacles = []; runner.y = 140; runner.vy = 0; runner.isGrounded = true;
-            document.getElementById('run-score').innerText = "Score: 0"; document.getElementById('run-start-btn').style.display = "block"; drawRunInitial();
-        }
+        function initRunGame() { runScore = 0; gameSpeed = 5; obstacles = []; runner.y = 140; runner.vy = 0; runner.isGrounded = true; document.getElementById('run-score').innerText = "Score: 0"; document.getElementById('run-start-btn').style.display = "block"; drawRunInitial(); }
         function drawRunInitial() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "#555"; ctx.fillRect(0, 170, canvas.width, 30); ctx.fillStyle = "#0055ff"; ctx.fillRect(runner.x, runner.y, runner.w, runner.h); }
         function startRunGame() { if (runIsPlaying) return; runIsPlaying = true; document.getElementById('run-start-btn').style.display = "none"; updateRunGame(); }
         function playerJump() { if (runIsPlaying && runner.isGrounded) { runner.vy = runner.jumpPower; runner.isGrounded = false; } }
         function updateRunGame() {
-            if (!runIsPlaying) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
-            runner.vy += runner.gravity; runner.y += runner.vy;
-            if (runner.y >= 140) { runner.y = 140; runner.vy = 0; runner.isGrounded = true; }
-            ctx.fillStyle = "#555"; ctx.fillRect(0, 170, canvas.width, 30);
-            ctx.fillStyle = "#0055ff"; ctx.fillRect(runner.x, runner.y, runner.w, runner.h);
-            obstacleTimer++;
+            if (!runIsPlaying) return; ctx.clearRect(0, 0, canvas.width, canvas.height); runner.vy += runner.gravity; runner.y += runner.vy; if (runner.y >= 140) { runner.y = 140; runner.vy = 0; runner.isGrounded = true; }
+            ctx.fillStyle = "#555"; ctx.fillRect(0, 170, canvas.width, 30); ctx.fillStyle = "#0055ff"; ctx.fillRect(runner.x, runner.y, runner.w, runner.h); obstacleTimer++;
             if (obstacleTimer > Math.floor(Math.random() * 40) + 60) { obstacles.push({ x: canvas.width, y: 145, w: 20, h: 25 }); obstacleTimer = 0; }
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                obstacles[i].x -= gameSpeed; ctx.fillStyle = "#ff0055"; ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].w, obstacles[i].h);
-                if (runner.x < obstacles[i].x + obstacles[i].w && runner.x + runner.w > obstacles[i].x && runner.y < obstacles[i].y + obstacles[i].h && runner.y + runner.h > obstacles[i].y) { gameOverRun(); return; }
-                if (obstacles[i].x + obstacles[i].w < 0) { obstacles.splice(i, 1); runScore++; document.getElementById('run-score').innerText = "Score: " + runScore; gameSpeed += 0.5; }
-            }
+            for (let i = obstacles.length - 1; i >= 0; i--) { obstacles[i].x -= gameSpeed; ctx.fillStyle = "#ff0055"; ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].w, obstacles[i].h); if (runner.x < obstacles[i].x + obstacles[i].w && runner.x + runner.w > obstacles[i].x && runner.y < obstacles[i].y + obstacles[i].h && runner.y + runner.h > obstacles[i].y) { gameOverRun(); return; } if (obstacles[i].x + obstacles[i].w < 0) { obstacles.splice(i, 1); runScore++; document.getElementById('run-score').innerText = "Score: " + runScore; gameSpeed += 0.5; } }
             runAnimationId = requestAnimationFrame(updateRunGame);
         }
         function gameOverRun() { runIsPlaying = false; document.getElementById('run-start-btn').style.display = "block"; document.getElementById('run-start-btn').innerText = "TRY AGAIN"; }
 
-        // --- DRAGON RUN WASD (BALANCED AND CORRECTED MOVEMENT) ---
+        // --- DRAGON RUN WASD (FIXED STARTING & SPEED) ---
         const dCanvas = document.getElementById('dragon-canvas'); const dCtx = dCanvas.getContext('2d');
-        let dPlayer = { x: 250, y: 250, w: 25, h: 25, vy: 0, gravity: 0.6, jumpPower: -12, isGrounded: true, speed: 4 }; // מהירות מאוזנת וכיפית
-        let dragon = { x: 20, y: 50, w: 45, h: 45, speed: 1.6 }; // מהירות דרקון רגילה
+        let dPlayer = { x: 450, y: 250, w: 25, h: 25, vy: 0, gravity: 0.6, jumpPower: -12, isGrounded: true, speed: 4 }; 
+        let dragon = { x: -60, y: 100, w: 45, h: 45, speed: 1.5 }; // מתחיל מחוץ למסך משמאל!
         let dSharks = []; let dSharkTimer = 0;
         function dJump() { if (dragonIsPlaying && dPlayer.isGrounded) { dPlayer.vy = dPlayer.jumpPower; dPlayer.isGrounded = false; } }
-        function initDragonGame() {
-            dragonIsPlaying = false; dPlayer.x = 250; dPlayer.y = 250; dPlayer.vy = 0; dragon.x = 20; dragon.y = 50; dSharks = [];
-            document.getElementById('dragon-score').innerText = "Survival Time: 0s"; document.getElementById('dragon-start-btn').style.display = "block"; drawDragonScene();
-        }
+        function initDragonGame() { dragonIsPlaying = false; dPlayer.x = 450; dPlayer.y = 250; dPlayer.vy = 0; dragon.x = -60; dragon.y = 100; dSharks = []; document.getElementById('dragon-score').innerText = "Survival Time: 0s"; document.getElementById('dragon-start-btn').style.display = "block"; drawDragonScene(); }
         function startDragonGame() { if (dragonIsPlaying) return; dragonIsPlaying = true; dStartTime = Date.now(); document.getElementById('dragon-start-btn').style.display = "none"; startTenseMusic(); updateDragonGame(); }
-        function drawDragonScene() {
-            dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height); dCtx.fillStyle = "#8b5a2b"; dCtx.fillRect(0, 275, dCanvas.width, 20);
-            dCtx.fillStyle = "#0044ff"; dCtx.fillRect(0, 295, dCanvas.width, dCanvas.height - 295); dCtx.fillStyle = "#0055ff"; dCtx.fillRect(dPlayer.x, dPlayer.y, dPlayer.w, dPlayer.h);
-            dCtx.font = "50px Arial"; dCtx.fillText("🐉", dragon.x, dragon.y); dCtx.font = "30px Arial"; dSharks.forEach(s => dCtx.fillText("🦈", s.x, s.y));
-        }
+        function drawDragonScene() { dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height); dCtx.fillStyle = "#8b5a2b"; dCtx.fillRect(0, 275, dCanvas.width, 20); dCtx.fillStyle = "#0044ff"; dCtx.fillRect(0, 295, dCanvas.width, dCanvas.height - 295); dCtx.fillStyle = "#0055ff"; dCtx.fillRect(dPlayer.x, dPlayer.y, dPlayer.w, dPlayer.h); if(dragon.x > -50) { dCtx.font = "50px Arial"; dCtx.fillText("🐉", dragon.x, dragon.y); } else { dCtx.font = "20px Arial"; dCtx.fillText("⚠️", 10, 150); } dCtx.font = "30px Arial"; dSharks.forEach(s => dCtx.fillText("🦈", s.x, s.y)); }
         function updateDragonGame() {
-            if (!dragonIsPlaying) return;
-            let survivalTime = Math.floor((Date.now() - dStartTime) / 1000); document.getElementById('dragon-score').innerText = "Survival Time: " + survivalTime + "s";
+            if (!dragonIsPlaying) return; let survivalTime = Math.floor((Date.now() - dStartTime) / 1000); document.getElementById('dragon-score').innerText = "Survival Time: " + survivalTime + "s";
             
-            // תנועת WASD מעולה וחלקה שעובדת פיקס
+            // שליטה מלאה וחופשית ב-WASD
             if (dKeys.a && dPlayer.x > 0) dPlayer.x -= dPlayer.speed;
             if (dKeys.d && dPlayer.x < dCanvas.width - dPlayer.w) dPlayer.x += dPlayer.speed;
+            if (dKeys.w && dPlayer.isGrounded) { dJump(); } // קפיצה עם W
+            if (dKeys.s && !dPlayer.isGrounded) dPlayer.vy += 1; // ירידה מהירה עם S
             
-            dPlayer.vy += dPlayer.gravity; dPlayer.y += dPlayer.vy;
-            if (dPlayer.y >= 250) { dPlayer.y = 250; dPlayer.vy = 0; dPlayer.isGrounded = true; }
+            dPlayer.vy += dPlayer.gravity; dPlayer.y += dPlayer.vy; if (dPlayer.y >= 250) { dPlayer.y = 250; dPlayer.vy = 0; dPlayer.isGrounded = true; }
             
-            let angle = Math.atan2(dPlayer.y - dragon.y, dPlayer.x - dragon.x);
-            dragon.x += Math.cos(angle) * dragon.speed; dragon.y += Math.sin(angle) * dragon.speed;
+            // תנועת דרקון חלקה ומבוקרת
+            let dx = dPlayer.x - dragon.x; let dy = dPlayer.y - dragon.y; let dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist > 1) { dragon.x += (dx / dist) * dragon.speed; dragon.y += (dy / dist) * dragon.speed; }
             
-            dSharkTimer++;
-            if (dSharkTimer > 60) { dSharks.push({ x: dPlayer.x + (Math.random()*160-80), y: 330, vy: -9.5, g: 0.28, w: 25, h: 25 }); dSharkTimer = 0; }
+            dSharkTimer++; if (dSharkTimer > 75) { dSharks.push({ x: dPlayer.x + (Math.random()*120-60), y: 330, vy: -9, g: 0.25, w: 25, h: 25 }); dSharkTimer = 0; }
             for (let i = dSharks.length - 1; i >= 0; i--) { dSharks[i].vy += dSharks[i].g; dSharks[i].y += dSharks[i].vy; if (dSharks[i].y > dCanvas.height) dSharks.splice(i, 1); }
             
             drawDragonScene();
@@ -428,24 +373,8 @@
             dragonAnimationId = requestAnimationFrame(updateDragonGame);
         }
         function checkCollision(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
-        function gameOverDragon(time) {
-            dragonIsPlaying = false; stopDragonMusic(); dCtx.fillStyle = "rgba(0,0,0,0.85)"; dCtx.fillRect(0, 0, dCanvas.width, dCanvas.height);
-            dCtx.fillStyle = "#ff3300"; dCtx.font = "bold 35px Segoe UI"; dCtx.textAlign = "center"; dCtx.fillText("THE DRAGON CAUGHT YOU! 💀", dCanvas.width / 2, dCanvas.height / 2 - 10);
-            dCtx.fillStyle = "#ffffff"; dCtx.font = "18px Segoe UI"; dCtx.fillText("You survived for: " + time + " seconds", dCanvas.width / 2, dCanvas.height / 2 + 30);
-            document.getElementById('dragon-start-btn').style.display = "block"; document.getElementById('dragon-start-btn').innerText = "TRY AGAIN";
-        }
-        function startTenseMusic() {
-            startAudioContext(); if (!audioCtx) return; stopDragonMusic();
-            dragonMusicInterval = setInterval(() => {
-                if (!dragonIsPlaying) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(110 + (Math.random()>0.5?6.54:0), audioCtx.currentTime);
-                // הגברת סאונד מותאם לווליום החדש
-                if(mainGainNode) {
-                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-                    osc.connect(gain); gain.connect(mainGainNode); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-                }
-            }, 250);
-        }
+        function gameOverDragon(time) { dragonIsPlaying = false; stopDragonMusic(); dCtx.fillStyle = "rgba(0,0,0,0.85)"; dCtx.fillRect(0, 0, dCanvas.width, dCanvas.height); dCtx.fillStyle = "#ff3300"; dCtx.font = "bold 35px Segoe UI"; dCtx.textAlign = "center"; dCtx.fillText("THE DRAGON CAUGHT YOU! 💀", dCanvas.width / 2, dCanvas.height / 2 - 10); dCtx.fillStyle = "#ffffff"; dCtx.font = "18px Segoe UI"; dCtx.fillText("You survived for: " + time + " seconds", dCanvas.width / 2, dCanvas.height / 2 + 30); document.getElementById('dragon-start-btn').style.display = "block"; document.getElementById('dragon-start-btn').innerText = "TRY AGAIN"; }
+        function startTenseMusic() { startAudioContext(); if (!audioCtx) return; stopDragonMusic(); dragonMusicInterval = setInterval(() => { if (!dragonIsPlaying) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(110 + (Math.random()>0.5?6.54:0), audioCtx.currentTime); if(mainGainNode) { gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2); osc.connect(gain); gain.connect(mainGainNode); osc.start(); osc.stop(audioCtx.currentTime + 0.2); } }, 250); }
         function stopDragonMusic() { if (dragonMusicInterval) clearInterval(dragonMusicInterval); }
     </script>
 </body>
