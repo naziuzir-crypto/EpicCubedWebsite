@@ -19,12 +19,12 @@
             transition: background-color 0.1s ease;
         }
 
-        #login-screen, #menu-screen {
+        #login-screen, #menu-screen, #bet-screen {
             background: rgba(255, 255, 255, 0.05);
             padding: 30px;
             border-radius: 20px;
             border: 2px solid #4ca1af;
-            width: 320px;
+            width: 340px;
             text-align: center;
             box-shadow: 0 0 20px rgba(76, 161, 175, 0.3);
         }
@@ -41,22 +41,25 @@
             text-align: center;
         }
 
-        .avatar-selection {
+        .avatar-selection, .shape-selection {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-bottom: 20px;
         }
 
-        .avatar-opt {
+        .avatar-opt, .shape-opt {
             font-size: 30px;
             padding: 8px;
             border: 2px solid transparent;
             border-radius: 10px;
             cursor: pointer;
+            background: rgba(255,255,255,0.02);
+            transition: 0.2s;
         }
+        .shape-opt:hover { background: rgba(255,255,255,0.1); }
 
-        .selected-avatar { border-color: #00ffcc; background: rgba(0,255,204,0.1); }
+        .selected-avatar, .selected-shape { border-color: #00ffcc; background: rgba(0,255,204,0.1); }
 
         .btn {
             width: 100%;
@@ -122,14 +125,16 @@
             font-weight: bold;
         }
 
-        #leaderboard {
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 15px;
-            border: 1px solid #4ca1af;
-            width: 280px;
-            text-align: center;
+        #vip-status-bar {
+            background: linear-gradient(135deg, #ffe066, #f5b041);
+            color: #000;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+            box-shadow: 0 0 15px rgba(245, 176, 65, 0.5);
         }
 
         .back-btn { position: absolute; top: 20px; left: 20px; background: #333; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; z-index: 100; }
@@ -149,6 +154,13 @@
             font-weight: bold;
         }
         .volume-slider { cursor: pointer; accent-color: #00ffcc; width: 150px; }
+        
+        #slot-display {
+            font-size: 60px;
+            margin: 20px 0;
+            letter-spacing: 10px;
+            height: 80px;
+        }
     </style>
 </head>
 <body>
@@ -170,11 +182,15 @@
     </div>
 
     <div id="menu-screen" style="display: none;">
+        <div id="vip-status-bar">👑 VIP ACTIVE! Time left: <span id="vip-timer">24:00:00</span></div>
         <h2 id="welcome-msg">Welcome</h2>
+        <div style="margin-bottom: 15px; font-weight: bold; color: #ffe066;" id="inventory-txt">Pass Cubes: 0</div>
+        <button id="activate-vip-btn" class="btn" style="background: linear-gradient(135deg, #f5b041, #f39c12); color: black; display: none;" onclick="activateVip()">⚡ ACTIVATE 24H VIP 👑</button>
         <p>Choose a Game to Play:</p>
         <button class="btn" onclick="openGame('reaction')">1. Reaction Time! ⏱️</button>
         <button class="btn" onclick="openGame('clicker')">2. CubeClicker 🟦</button>
         <button class="btn" style="background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="openGame('run')">3. CUBE RUN vs DRAGON! 🏃‍♂️🐉</button>
+        <button class="btn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white;" onclick="openGame('bet')">4. BET ON THE SHAPE 🎰🔮</button>
     </div>
 
     <div id="game-reaction" class="game-window">
@@ -192,7 +208,7 @@
 
     <div id="game-clicker" class="game-window">
         <button class="back-btn" onclick="backToMenu()">← Menu</button>
-        <h2>CubeClicker 🟦</h2>
+        <h2>CubeClicker 🟦 <span id="clicker-vip-badge" style="color: #ffe066; display: none;">(X2 Active!)</span></h2>
         <div id="cube-score" style="font-size: 28px; font-weight: bold; color: #00ffcc;">Cubes: 0</div>
         <div id="cube-cps" style="font-size: 16px; color: #aaa;">Per Second (CPS): 0</div>
         <div class="cube" onclick="clickCube()"></div>
@@ -205,11 +221,33 @@
 
     <div id="game-run" class="game-window">
         <button class="back-btn" onclick="backToMenu()">← Menu</button>
-        <h2>Cube Run vs Dragon! 🏃‍♂️💨🐉</h2>
+        <h2>Cube Run vs Dragon! 🏃‍♂️💨🐉 <span id="run-vip-badge" style="color: #ffe066; display: none;">(0.75x Slowdown!)</span></h2>
         <div id="run-score" style="font-size: 24px; font-weight: bold; color: #ffcc00; margin-bottom: 10px;">Score: 0</div>
         <canvas id="run-canvas" width="550" height="220" onclick="playerJump()"></canvas>
         <p style="font-size: 14px; color: #aaa; margin-top: 10px;">Click screen or press SPACEBAR/W to Jump over Spikes!</p>
         <button id="run-start-btn" class="btn" style="width: auto; padding: 10px 30px; background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="startRunGame()">START RUN</button>
+    </div>
+
+    <div id="game-bet" class="game-window">
+        <button class="back-btn" onclick="backToMenu()">← Menu</button>
+        <h2>🔮 Bet on the Shape 🔮</h2>
+        <p style="font-size: 14px; color: #aaa;">Guess the winning shape to win a <b>Pass Cube (24H VIP)</b>!</p>
+        <div style="font-size: 20px; font-weight: bold; color: #00ffcc; margin-bottom: 10px;" id="bet-cubes-display">Cubes: 0</div>
+        
+        <div class="shape-selection">
+            <span class="shape-opt selected-shape" onclick="selectBetShape(this, '⭕')">⭕ Circle</span>
+            <span class="shape-opt" onclick="selectBetShape(this, '🟦')">🟦 Square</span>
+            <span class="shape-opt" onclick="selectBetShape(this, '🔺')">🔺 Triangle</span>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>Bet Amount (Min 10 Cubes): </label>
+            <input type="number" id="bet-amount-input" class="input-field" value="10" min="10" style="width: 80px; margin-left: 10px; padding: 5px;">
+        </div>
+
+        <div id="slot-display">🔮</div>
+        <div id="bet-result" style="font-size: 18px; font-weight: bold; min-height: 25px; margin-bottom: 10px;"></div>
+        <button id="roll-bet-btn" class="btn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);" onclick="rollBet()">PLACE BET & ROLL</button>
     </div>
 
     <script>
@@ -220,6 +258,14 @@
         let userVolumeMultiplier = 1.0; 
         let runAnimationId, runScore, runIsPlaying = false;
         let musicInterval = null;
+        let currentMusicType = "";
+
+        // --- מערכת קוביות ומלאי ---
+        let cubes = 0; 
+        let passCubes = 0;
+        let selectedShape = "⭕";
+        let isVipActive = false;
+        let vipEndTime = 0;
 
         window.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.key === 'w' || e.key === 'ArrowUp') {
@@ -245,6 +291,8 @@
             document.getElementById('menu-screen').style.display = "block";
             document.getElementById('vol-ctrl').style.display = "flex";
             initAudio();
+            checkVipStatus();
+            startChillMusic();
         }
 
         function initAudio() {
@@ -253,9 +301,7 @@
                 mainGainNode = audioCtx.createGain();
                 mainGainNode.connect(audioCtx.destination);
             }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
             mainGainNode.gain.setValueAtTime(0.15 * userVolumeMultiplier, audioCtx.currentTime);
         }
 
@@ -267,53 +313,109 @@
             }
         }
 
+        // --- מנגנון VIP פנימי ---
+        function activateVip() {
+            if (passCubes <= 0) return;
+            passCubes--;
+            isVipActive = true;
+            vipEndTime = Date.now() + (24 * 60 * 60 * 1000); // 24 שעות קדימה
+            updateInventoryUI();
+            checkVipStatus();
+        }
+
+        function checkVipStatus() {
+            if (isVipActive) {
+                let timeLeft = vipEndTime - Date.now();
+                if (timeLeft <= 0) {
+                    isVipActive = false;
+                    document.getElementById('vip-status-bar').style.display = "none";
+                    document.getElementById('clicker-vip-badge').style.display = "none";
+                    document.getElementById('run-vip-badge').style.display = "none";
+                } else {
+                    document.getElementById('vip-status-bar').style.display = "block";
+                    document.getElementById('clicker-vip-badge').style.display = "inline";
+                    document.getElementById('run-vip-badge').style.display = "inline";
+                    
+                    // עדכון טיימר ה-VIP
+                    let hrs = Math.floor(timeLeft / (1000 * 60 * 60));
+                    let mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    let secs = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    document.getElementById('vip-timer').innerText = 
+                        `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }
+            }
+            setTimeout(checkVipStatus, 1000);
+        }
+
+        function updateInventoryUI() {
+            document.getElementById('inventory-txt').innerText = "Pass Cubes: " + passCubes;
+            document.getElementById('bet-cubes-display').innerText = "Cubes: " + cubes;
+            if (passCubes > 0 && !isVipActive) {
+                document.getElementById('activate-vip-btn').style.display = "block";
+            } else {
+                document.getElementById('activate-vip-btn').style.display = "none";
+            }
+        }
+
         function openGame(gameType) {
             document.querySelectorAll('.game-window').forEach(w => w.style.display = "none");
             document.getElementById('menu-screen').style.display = "none";
-            if (gameType === 'reaction') { document.getElementById('game-reaction').style.display = "flex"; }
-            else if (gameType === 'clicker') { document.getElementById('game-clicker').style.display = "flex"; updateClickerUI(); }
+            updateInventoryUI();
+            
+            if (gameType === 'reaction') { document.getElementById('game-reaction').style.display = "flex"; startChillMusic(); }
+            else if (gameType === 'clicker') { document.getElementById('game-clicker').style.display = "flex"; updateClickerUI(); startChillMusic(); }
             else if (gameType === 'run') { document.getElementById('game-run').style.display = "flex"; initRunGame(); }
+            else if (gameType === 'bet') { document.getElementById('game-bet').style.display = "flex"; startChillMusic(); }
         }
 
         function backToMenu() {
             clearTimeout(timeoutId); cancelAnimationFrame(runAnimationId);
-            stopMusic(); runIsPlaying = false; reactionState = "idle";
+            runIsPlaying = false; reactionState = "idle";
             document.body.style.backgroundColor = "#000000";
             document.getElementById('start-btn').style.display = "block"; 
             document.querySelectorAll('.game-window').forEach(window => window.style.display = "none");
             document.getElementById('menu-screen').style.display = "block";
+            updateInventoryUI();
+            startChillMusic();
         }
 
-        // --- REACTION TIME ---
+        // --- REACTION TIME (מגיב ל-VIP) ---
         let reactionState = "idle"; let startTime = 0; let timeoutId = null;
         function startReactionGame(event) {
             event.stopPropagation(); reactionState = "waiting";
             document.body.style.backgroundColor = "#000000";
             document.getElementById('status-text').innerText = "Wait for Blue..."; document.getElementById('result-text').innerText = ""; document.getElementById('start-btn').style.display = "none";
+            
+            // אם יש VIP מחכים קצת יותר זמן בצורה איטית
+            let waitTime = Math.floor(Math.random() * 3000) + (isVipActive ? 1500 : 1000);
             timeoutId = setTimeout(() => { 
                 reactionState = "clickMe"; 
                 document.body.style.backgroundColor = "#0055ff";
                 document.getElementById('status-text').innerText = "CLICK NOW!!!"; 
                 startTime = window.performance.now(); 
-            }, Math.floor(Math.random() * 3000) + 1000);
+            }, waitTime);
         }
         document.getElementById('game-reaction').addEventListener('click', () => {
             if (reactionState === "waiting") { clearTimeout(timeoutId); reactionState = "idle"; document.body.style.backgroundColor = "#000000"; document.getElementById('status-text').innerText = "Too early!"; document.getElementById('start-btn').style.display = "block"; }
             else if (reactionState === "clickMe") { let diff = parseFloat(((window.performance.now() - startTime) / 1000).toFixed(3)); reactionState = "finished"; document.body.style.backgroundColor = "#000000"; document.getElementById('status-text').innerText = "Your Time:"; document.getElementById('result-text').innerText = diff + "s"; document.getElementById('start-btn').style.display = "block"; document.getElementById('leaderboard-entries').innerText = `Last score: ${diff}s!`; }
         });
 
-        // --- CUBE CLICKER ---
-        let cubes = 0; let clickPower = 1; let autoClickers = 0; let clickCost = 15; let autoCost = 50;
-        function clickCube() { cubes += clickPower; updateClickerUI(); }
+        // --- CUBE CLICKER (מגיב ל-VIP פי 2) ---
+        let clickPower = 1; let autoClickers = 0; let clickCost = 15; let autoCost = 50;
+        function clickCube() { 
+            let gain = clickPower * (isVipActive ? 2 : 1); // הטבת VIP כפול 2
+            cubes += gain; 
+            updateClickerUI(); 
+        }
         function buyUpgrade(type) {
             if (type === 'click' && cubes >= clickCost) { cubes -= clickCost; clickPower += 1; clickCost = Math.floor(clickCost * 1.5); }
             else if (type === 'auto' && cubes >= autoCost) { cubes -= autoCost; autoClickers += 1; autoCost = Math.floor(autoCost * 1.6); }
             updateClickerUI();
         }
-        function updateClickerUI() { document.getElementById('cube-score').innerText = "Cubes: " + cubes; document.getElementById('cube-cps').innerText = "Per Second (CPS): " + autoClickers; document.getElementById('up-click-btn').innerText = `Upgrade Click (+1) | Cost: ${clickCost}`; document.getElementById('up-auto-btn').innerText = `Auto Clicker (+1 CPS) | Cost: ${autoCost}`; }
-        setInterval(() => { if (autoClickers > 0 && document.getElementById('game-clicker').style.display === "flex") { cubes += autoClickers; updateClickerUI(); } }, 1000);
+        function updateClickerUI() { document.getElementById('cube-score').innerText = "Cubes: " + cubes; document.getElementById('cube-cps').innerText = "Per Second (CPS): " + (autoClickers * (isVipActive ? 2 : 1)); document.getElementById('up-click-btn').innerText = `Upgrade Click (+1) | Cost: ${clickCost}`; document.getElementById('up-auto-btn').innerText = `Auto Clicker (+1 CPS) | Cost: ${autoCost}`; }
+        setInterval(() => { if (autoClickers > 0 && document.getElementById('game-clicker').style.display === "flex") { cubes += autoClickers * (isVipActive ? 2 : 1); updateClickerUI(); } }, 1000);
 
-        // --- CUBE RUN VS DRAGON WITH SPIKES ---
+        // --- CUBE RUN VS DRAGON (מגיב ל-VIP במהירות 0.75x) ---
         const canvas = document.getElementById('run-canvas'); const ctx = canvas.getContext('2d');
         let runner = { x: 140, y: 150, w: 30, h: 30, vy: 0, gravity: 0.6, jumpPower: -11, isGrounded: true };
         let obstacles = []; let obstacleTimer = 0; let gameSpeed = 5;
@@ -325,6 +427,7 @@
             document.getElementById('run-start-btn').style.display = "block"; 
             document.getElementById('run-start-btn').innerText = "START RUN";
             drawRunScene(); 
+            startChillMusic();
         }
         
         function drawSpike(x, y, width, height) {
@@ -335,9 +438,7 @@
             ctx.lineTo(x + width, y + height);
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = "#000";
-            ctx.lineWidth = 1;
-            ctx.stroke();
+            ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke();
         }
         
         function drawRunScene() { 
@@ -347,12 +448,8 @@
             ctx.fillStyle = "#0055ff"; ctx.fillRect(runner.x, runner.y, runner.w, runner.h); 
             
             obstacles.forEach(obs => {
-                if (obs.type === 'spike') {
-                    drawSpike(obs.x, obs.y, obs.w, obs.h);
-                } else {
-                    ctx.fillStyle = "#ffaa00";
-                    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-                }
+                if (obs.type === 'spike') { drawSpike(obs.x, obs.y, obs.w, obs.h); } 
+                else { ctx.fillStyle = "#ffaa00"; ctx.fillRect(obs.x, obs.y, obs.w, obs.h); }
             });
         }
         
@@ -365,12 +462,7 @@
             updateRunGame(); 
         }
         
-        function playerJump() { 
-            if (runIsPlaying && runner.isGrounded) { 
-                runner.vy = runner.jumpPower; 
-                runner.isGrounded = false; 
-            } 
-        }
+        function playerJump() { if (runIsPlaying && runner.isGrounded) { runner.vy = runner.jumpPower; runner.isGrounded = false; } }
         
         function updateRunGame() {
             if (!runIsPlaying) return; 
@@ -379,25 +471,22 @@
             if (runner.y >= 150) { runner.y = 150; runner.vy = 0; runner.isGrounded = true; }
             
             obstacleTimer++;
-            if (obstacleTimer > Math.floor(Math.random() * 35) + 55) { 
+            let nextObstacleInterval = (Math.floor(Math.random() * 35) + 55) * (isVipActive ? 1.3 : 1.0); // מרווח גדול יותר ב-VIP
+            if (obstacleTimer > nextObstacleInterval) { 
                 let isSpike = Math.random() > 0.3;
-                if (isSpike) {
-                    obstacles.push({ x: canvas.width, y: 150, w: 25, h: 30, type: 'spike' });
-                } else {
-                    obstacles.push({ x: canvas.width, y: 155, w: 20, h: 25, type: 'block' });
-                }
+                if (isSpike) { obstacles.push({ x: canvas.width, y: 150, w: 25, h: 30, type: 'spike' }); } 
+                else { obstacles.push({ x: canvas.width, y: 155, w: 20, h: 25, type: 'block' }); }
                 obstacleTimer = 0; 
             }
             
+            // חישוב מהירות מושפע מ-VIP (0.75x מהירות)
+            let currentSpeed = gameSpeed * (isVipActive ? 0.75 : 1.0);
+            
             for (let i = obstacles.length - 1; i >= 0; i--) { 
-                obstacles[i].x -= gameSpeed; 
+                obstacles[i].x -= currentSpeed; 
                 
-                if (runner.x < obstacles[i].x + obstacles[i].w && 
-                    runner.x + runner.w > obstacles[i].x && 
-                    runner.y < obstacles[i].y + obstacles[i].h && 
-                    runner.y + runner.h > obstacles[i].y) { 
-                    gameOverRun(); 
-                    return; 
+                if (runner.x < obstacles[i].x + obstacles[i].w && runner.x + runner.w > obstacles[i].x && runner.y < obstacles[i].y + obstacles[i].h && runner.y + runner.h > obstacles[i].y) { 
+                    gameOverRun(); return; 
                 } 
                 if (obstacles[i].x + obstacles[i].w < 0) { 
                     obstacles.splice(i, 1); 
@@ -412,39 +501,94 @@
         }
         
         function gameOverRun() { 
-            runIsPlaying = false; 
-            stopMusic();
-            cancelAnimationFrame(runAnimationId);
+            runIsPlaying = false; stopMusic(); cancelAnimationFrame(runAnimationId);
+            startChillMusic();
             ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#ff3300"; ctx.font = "bold 30px Segoe UI"; ctx.textAlign = "center";
             ctx.fillText("THE DRAGON CAUGHT YOU! 💀", canvas.width / 2, canvas.height / 2);
+            document.getElementById('run-start-btn').style.display = "block"; document.getElementById('run-start-btn').innerText = "TRY AGAIN"; 
+        }
+
+        // --- GAME 4: BET ON THE SHAPE ---
+        function selectBetShape(element, shape) {
+            document.querySelectorAll('.shape-opt').forEach(opt => opt.classList.remove('selected-shape'));
+            element.classList.add('selected-shape');
+            selectedShape = shape;
+        }
+
+        function rollBet() {
+            let betInput = document.getElementById('bet-amount-input');
+            let betAmount = parseInt(betInput.value);
+            let resultTxt = document.getElementById('bet-result');
+            let slotDisp = document.getElementById('slot-display');
             
-            // איפוס וכפתור Try Again שעובד פיקס
-            document.getElementById('run-start-btn').style.display = "block"; 
-            document.getElementById('run-start-btn').innerText = "TRY AGAIN"; 
+            if (isNaN(betAmount) || betAmount < 10) { alert("Minimum bet is 10 Cubes!"); return; }
+            if (cubes < betAmount) { alert("You don't have enough cubes to place this bet!"); return; }
+            
+            cubes -= betAmount;
+            document.getElementById('bet-cubes-display').innerText = "Cubes: " + cubes;
+            resultTxt.innerText = "Rolling the shapes...";
+            document.getElementById('roll-bet-btn').disabled = true;
+            
+            let shapes = ['⭕', '🟦', '🔺'];
+            let counter = 0;
+            
+            let interval = setInterval(() => {
+                let randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+                slotDisp.innerText = randomShape;
+                counter++;
+                
+                if (counter > 15) {
+                    clearInterval(interval);
+                    let finalShape = shapes[Math.floor(Math.random() * shapes.length)];
+                    slotDisp.innerText = finalShape;
+                    document.getElementById('roll-bet-btn').disabled = false;
+                    
+                    if (finalShape === selectedShape) {
+                        passCubes++;
+                        resultTxt.style.color = "#2ecc71";
+                        resultTxt.innerHTML = `🎉 MATCH! You won 1 Pass Cube! 👑`;
+                    } else {
+                        resultTxt.style.color = "#e74c3c";
+                        resultTxt.innerText = `❌ No match! The winning shape was ${finalShape}. Try again!`;
+                    }
+                    updateInventoryUI();
+                }
+            }, 100);
+        }
+
+        // --- מנגנון מוזיקה ---
+        function startChillMusic() {
+            if (currentMusicType === "chill") return;
+            stopMusic(); currentMusicType = "chill";
+            let noteIndex = 0;
+            const chillNotes = [261.63, 293.66, 329.63, 349.23, 392.00, 349.23, 329.63, 293.66]; 
+            musicInterval = setInterval(() => {
+                if (currentMusicType !== "chill" || !audioCtx) return;
+                try {
+                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(chillNotes[noteIndex], audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                    osc.connect(gain); gain.connect(mainGainNode); osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+                    noteIndex = (noteIndex + 1) % chillNotes.length;
+                } catch(e) {}
+            }, 600);
         }
 
         function startTenseMusic() {
-            stopMusic();
+            stopMusic(); currentMusicType = "run";
             musicInterval = setInterval(() => {
-                if (!runIsPlaying || !audioCtx) return;
+                if (currentMusicType !== "run" || !audioCtx) return;
                 try {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(110 + (Math.random() > 0.5 ? 6 : 0), audioCtx.currentTime);
-                    
-                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-                    
-                    osc.connect(gain);
-                    gain.connect(mainGainNode);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.2);
-                } catch(e) { console.log(e); }
+                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(110 + (Math.random() > 0.5 ? 6 : 0), audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                    osc.connect(gain); gain.connect(mainGainNode); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+                } catch(e) {}
             }, 250);
         }
-        function stopMusic() { if (musicInterval) clearInterval(musicInterval); }
+
+        function stopMusic() { if (musicInterval) clearInterval(musicInterval); currentMusicType = ""; }
     </script>
 </body>
 </html>
