@@ -256,11 +256,12 @@
         let audioCtx = null;
         let mainGainNode = null;
         let userVolumeMultiplier = 1.0; 
-        let runAnimationId, runScore, runIsPlaying = false;
+        let runAnimationId = null;
+        let runScore = 0;
+        let runIsPlaying = false;
         let musicInterval = null;
         let currentMusicType = "";
 
-        // --- מערכת קוביות ומלאי ---
         let cubes = 0; 
         let passCubes = 0;
         let selectedShape = "⭕";
@@ -313,12 +314,11 @@
             }
         }
 
-        // --- מנגנון VIP פנימי ---
         function activateVip() {
             if (passCubes <= 0) return;
             passCubes--;
             isVipActive = true;
-            vipEndTime = Date.now() + (24 * 60 * 60 * 1000); // 24 שעות קדימה
+            vipEndTime = Date.now() + (24 * 60 * 60 * 1000);
             updateInventoryUI();
             checkVipStatus();
         }
@@ -336,7 +336,6 @@
                     document.getElementById('clicker-vip-badge').style.display = "inline";
                     document.getElementById('run-vip-badge').style.display = "inline";
                     
-                    // עדכון טיימר ה-VIP
                     let hrs = Math.floor(timeLeft / (1000 * 60 * 60));
                     let mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                     let secs = Math.floor((timeLeft % (1000 * 60)) / 1000);
@@ -369,7 +368,8 @@
         }
 
         function backToMenu() {
-            clearTimeout(timeoutId); cancelAnimationFrame(runAnimationId);
+            clearTimeout(timeoutId); 
+            if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
             runIsPlaying = false; reactionState = "idle";
             document.body.style.backgroundColor = "#000000";
             document.getElementById('start-btn').style.display = "block"; 
@@ -379,14 +379,13 @@
             startChillMusic();
         }
 
-        // --- REACTION TIME (מגיב ל-VIP) ---
+        // --- REACTION TIME ---
         let reactionState = "idle"; let startTime = 0; let timeoutId = null;
         function startReactionGame(event) {
             event.stopPropagation(); reactionState = "waiting";
             document.body.style.backgroundColor = "#000000";
             document.getElementById('status-text').innerText = "Wait for Blue..."; document.getElementById('result-text').innerText = ""; document.getElementById('start-btn').style.display = "none";
             
-            // אם יש VIP מחכים קצת יותר זמן בצורה איטית
             let waitTime = Math.floor(Math.random() * 3000) + (isVipActive ? 1500 : 1000);
             timeoutId = setTimeout(() => { 
                 reactionState = "clickMe"; 
@@ -400,10 +399,10 @@
             else if (reactionState === "clickMe") { let diff = parseFloat(((window.performance.now() - startTime) / 1000).toFixed(3)); reactionState = "finished"; document.body.style.backgroundColor = "#000000"; document.getElementById('status-text').innerText = "Your Time:"; document.getElementById('result-text').innerText = diff + "s"; document.getElementById('start-btn').style.display = "block"; document.getElementById('leaderboard-entries').innerText = `Last score: ${diff}s!`; }
         });
 
-        // --- CUBE CLICKER (מגיב ל-VIP פי 2) ---
+        // --- CUBE CLICKER ---
         let clickPower = 1; let autoClickers = 0; let clickCost = 15; let autoCost = 50;
         function clickCube() { 
-            let gain = clickPower * (isVipActive ? 2 : 1); // הטבת VIP כפול 2
+            let gain = clickPower * (isVipActive ? 2 : 1);
             cubes += gain; 
             updateClickerUI(); 
         }
@@ -415,13 +414,14 @@
         function updateClickerUI() { document.getElementById('cube-score').innerText = "Cubes: " + cubes; document.getElementById('cube-cps').innerText = "Per Second (CPS): " + (autoClickers * (isVipActive ? 2 : 1)); document.getElementById('up-click-btn').innerText = `Upgrade Click (+1) | Cost: ${clickCost}`; document.getElementById('up-auto-btn').innerText = `Auto Clicker (+1 CPS) | Cost: ${autoCost}`; }
         setInterval(() => { if (autoClickers > 0 && document.getElementById('game-clicker').style.display === "flex") { cubes += autoClickers * (isVipActive ? 2 : 1); updateClickerUI(); } }, 1000);
 
-        // --- CUBE RUN VS DRAGON (מגיב ל-VIP במהירות 0.75x) ---
+        // --- CUBE RUN VS DRAGON WITH SPIKES ---
         const canvas = document.getElementById('run-canvas'); const ctx = canvas.getContext('2d');
         let runner = { x: 140, y: 150, w: 30, h: 30, vy: 0, gravity: 0.6, jumpPower: -11, isGrounded: true };
         let obstacles = []; let obstacleTimer = 0; let gameSpeed = 5;
         
         function initRunGame() { 
-            cancelAnimationFrame(runAnimationId);
+            runIsPlaying = false;
+            if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
             runScore = 0; gameSpeed = 5; obstacles = []; runner.y = 150; runner.vy = 0; runner.isGrounded = true; obstacleTimer = 0;
             document.getElementById('run-score').innerText = "Score: 0"; 
             document.getElementById('run-start-btn').style.display = "block"; 
@@ -454,7 +454,15 @@
         }
         
         function startRunGame() { 
-            cancelAnimationFrame(runAnimationId);
+            if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
+            obstacles = [];
+            runScore = 0;
+            gameSpeed = 5;
+            obstacleTimer = 0;
+            runner.y = 150;
+            runner.vy = 0;
+            runner.isGrounded = true;
+            
             runIsPlaying = true; 
             document.getElementById('run-start-btn').style.display = "none"; 
             initAudio();
@@ -471,7 +479,7 @@
             if (runner.y >= 150) { runner.y = 150; runner.vy = 0; runner.isGrounded = true; }
             
             obstacleTimer++;
-            let nextObstacleInterval = (Math.floor(Math.random() * 35) + 55) * (isVipActive ? 1.3 : 1.0); // מרווח גדול יותר ב-VIP
+            let nextObstacleInterval = (Math.floor(Math.random() * 35) + 55) * (isVipActive ? 1.3 : 1.0);
             if (obstacleTimer > nextObstacleInterval) { 
                 let isSpike = Math.random() > 0.3;
                 if (isSpike) { obstacles.push({ x: canvas.width, y: 150, w: 25, h: 30, type: 'spike' }); } 
@@ -479,7 +487,6 @@
                 obstacleTimer = 0; 
             }
             
-            // חישוב מהירות מושפע מ-VIP (0.75x מהירות)
             let currentSpeed = gameSpeed * (isVipActive ? 0.75 : 1.0);
             
             for (let i = obstacles.length - 1; i >= 0; i--) { 
@@ -501,15 +508,20 @@
         }
         
         function gameOverRun() { 
-            runIsPlaying = false; stopMusic(); cancelAnimationFrame(runAnimationId);
+            runIsPlaying = false; 
+            stopMusic(); 
+            if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
             startChillMusic();
+            
             ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#ff3300"; ctx.font = "bold 30px Segoe UI"; ctx.textAlign = "center";
             ctx.fillText("THE DRAGON CAUGHT YOU! 💀", canvas.width / 2, canvas.height / 2);
-            document.getElementById('run-start-btn').style.display = "block"; document.getElementById('run-start-btn').innerText = "TRY AGAIN"; 
+            
+            document.getElementById('run-start-btn').style.display = "block"; 
+            document.getElementById('run-start-btn').innerText = "TRY AGAIN"; 
         }
 
-        // --- GAME 4: BET ON THE SHAPE ---
+        // --- BET ON THE SHAPE ---
         function selectBetShape(element, shape) {
             document.querySelectorAll('.shape-opt').forEach(opt => opt.classList.remove('selected-shape'));
             element.classList.add('selected-shape');
