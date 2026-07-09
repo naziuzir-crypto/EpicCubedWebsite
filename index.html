@@ -32,7 +32,7 @@
             border: 1px solid #333;
         }
 
-        #login-screen, #menu-screen, #world-screen {
+        #world-screen, #menu-screen {
             background: rgba(255, 255, 255, 0.05);
             padding: 30px;
             border-radius: 20px;
@@ -54,14 +54,14 @@
             text-align: center;
         }
 
-        .avatar-selection, .shape-selection {
+        .shape-selection {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-bottom: 20px;
         }
 
-        .avatar-opt, .shape-opt {
+        .shape-opt {
             font-size: 30px;
             padding: 8px;
             border: 2px solid transparent;
@@ -71,8 +71,7 @@
             transition: 0.2s;
         }
         .shape-opt:hover { background: rgba(255,255,255,0.1); }
-
-        .selected-avatar, .selected-shape { border-color: #00ffcc; background: rgba(0,255,204,0.1); }
+        .selected-shape { border-color: #00ffcc; background: rgba(0,255,204,0.1); }
 
         .btn {
             width: 100%;
@@ -170,7 +169,6 @@
         
         #slot-display { font-size: 60px; margin: 20px 0; letter-spacing: 10px; height: 80px; }
 
-        /* עיצוב רשימת עולמות */
         .world-list {
             max-height: 180px;
             overflow-y: auto;
@@ -220,18 +218,7 @@
         <input type="range" id="volume-slider" class="volume-slider" min="0" max="2000" value="100" oninput="changeVolume(this.value)">
     </div>
 
-    <div id="login-screen">
-        <h2>Create Arcade Profile</h2>
-        <input type="text" id="username-input" class="input-field" placeholder="Enter Nickname" maxlength="12">
-        <div class="avatar-selection">
-            <span class="avatar-opt selected-avatar" onclick="selectAvatar(this, '🤖')">🤖</span>
-            <span class="avatar-opt" onclick="selectAvatar(this, '🔥')">🔥</span>
-            <span class="avatar-opt" onclick="selectAvatar(this, '👑')">👑</span>
-        </div>
-        <button class="btn" onclick="createProfile()">NEXT</button>
-    </div>
-
-    <div id="world-screen" style="display: none;">
+    <div id="world-screen">
         <h2>Select World 🌍</h2>
         <input type="text" id="world-name-input" class="input-field" placeholder="New World Name" maxlength="15">
         <button class="btn" style="background: linear-gradient(135deg, #2ecc71, #27ae60);" onclick="createNewWorld()">CREATE NEW WORLD ➕</button>
@@ -241,9 +228,9 @@
     </div>
 
     <div id="menu-screen" style="display: none;">
-        <button class="back-btn" style="top:15px; left:140px;" onclick="exitWorld()">← Save & Quit World</button>
+        <button class="back-btn" style="top:15px; left:140px;" onclick="exitWorld()">← Save & Quit</button>
         <div id="vip-status-bar" style="margin-top: 35px;">👑 VIP ACTIVE! Time left: <span id="vip-timer">24:00:00</span></div>
-        <h2 id="welcome-msg" style="margin-top: 40px;">Welcome</h2>
+        <h2 style="margin-top: 40px;">Epic Arcade Menu</h2>
         <div style="font-size: 14px; color: #00ffcc; font-weight: bold; margin-bottom: 5px;" id="current-world-tag">World: None</div>
         <div style="margin-bottom: 15px; font-weight: bold; color: #ffe066;" id="inventory-txt">Pass Cubes: 0</div>
         <button id="activate-vip-btn" class="btn" style="background: linear-gradient(135deg, #f5b041, #f39c12); color: black; display: none;" onclick="activateVip()">⚡ ACTIVATE 24H VIP 👑</button>
@@ -312,8 +299,6 @@
     </div>
 
     <script>
-        let currentUsername = "";
-        let currentAvatar = "🤖";
         let audioCtx = null;
         let mainGainNode = null;
         let userVolumeMultiplier = 1.0; 
@@ -323,7 +308,7 @@
         let musicInterval = null;
         let currentMusicType = "";
 
-        // --- משתני משחק שישמרו בתוך ה"עולמות" ---
+        // --- משתני המערכת של העולם הנוכחי ---
         let currentWorldId = null;
         let cubes = 0; 
         let passCubes = 0;
@@ -335,8 +320,12 @@
         let vipEndTime = 0;
         let selectedShape = "⭕";
 
-        // רשימת עולמות גלובלית ב-LocalStorage
         let savedWorlds = JSON.parse(localStorage.getItem('arcade_worlds')) || {};
+
+        // טעינת רשימת העולמות מיד כשהדף עולה
+        window.onload = function() {
+            loadWorldsList();
+        };
 
         window.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.key === 'w' || e.key === 'ArrowUp') {
@@ -347,23 +336,6 @@
             }
         });
 
-        function selectAvatar(element, avatarIcon) {
-            document.querySelectorAll('.avatar-opt').forEach(opt => opt.classList.remove('selected-avatar'));
-            element.classList.add('selected-avatar');
-            currentAvatar = avatarIcon;
-        }
-
-        function createProfile() {
-            const name = document.getElementById('username-input').value.trim();
-            if (name === "") { alert("Please enter a nickname!"); return; }
-            currentUsername = currentAvatar + " " + name;
-            
-            document.getElementById('login-screen').style.display = "none";
-            document.getElementById('world-screen').style.display = "block";
-            loadWorldsList();
-        }
-
-        // --- מנגנון ניהול עולמות (Minecraft Style) ---
         function loadWorldsList() {
             const container = document.getElementById('worlds-container');
             container.innerHTML = "";
@@ -414,7 +386,6 @@
             currentWorldId = id;
             let w = savedWorlds[id];
             
-            // טעינת הנתונים של העולם הנבחר
             cubes = w.cubes;
             passCubes = w.passCubes;
             clickPower = w.clickPower;
@@ -424,7 +395,6 @@
             isVipActive = w.isVipActive;
             vipEndTime = w.vipEndTime;
             
-            document.getElementById('welcome-msg').innerText = "Welcome, " + currentUsername;
             document.getElementById('current-world-tag').innerText = "World: " + w.name;
             
             document.getElementById('world-screen').style.display = "none";
