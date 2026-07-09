@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EpicCubedHead - Arcade Games</title>
+    <title>EpicCubedHead - Arcade Games (v1.0)</title>
     <style>
         body {
             background-color: #000000;
@@ -19,12 +19,25 @@
             transition: background-color 0.1s ease;
         }
 
-        #login-screen, #menu-screen, #bet-screen {
+        #version-tag {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #888;
+            background: rgba(255,255,255,0.05);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #333;
+        }
+
+        #login-screen, #menu-screen, #world-screen {
             background: rgba(255, 255, 255, 0.05);
             padding: 30px;
             border-radius: 20px;
             border: 2px solid #4ca1af;
-            width: 340px;
+            width: 350px;
             text-align: center;
             box-shadow: 0 0 20px rgba(76, 161, 175, 0.3);
         }
@@ -155,15 +168,52 @@
         }
         .volume-slider { cursor: pointer; accent-color: #00ffcc; width: 150px; }
         
-        #slot-display {
-            font-size: 60px;
-            margin: 20px 0;
-            letter-spacing: 10px;
-            height: 80px;
+        #slot-display { font-size: 60px; margin: 20px 0; letter-spacing: 10px; height: 80px; }
+
+        /* עיצוב רשימת עולמות */
+        .world-list {
+            max-height: 180px;
+            overflow-y: auto;
+            margin: 15px 0;
+            padding: 5px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+        .world-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        .world-name-btn {
+            background: none;
+            border: none;
+            color: #00ffcc;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            flex-grow: 1;
+        }
+        .world-delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
+
+    <div id="version-tag">game version: 1.0</div>
 
     <div id="vol-ctrl" class="volume-container">
         <span>🎵 Vol: <span id="vol-txt">100%</span></span>
@@ -178,12 +228,23 @@
             <span class="avatar-opt" onclick="selectAvatar(this, '🔥')">🔥</span>
             <span class="avatar-opt" onclick="selectAvatar(this, '👑')">👑</span>
         </div>
-        <button class="btn" onclick="createProfile()">ENTER ARCADE</button>
+        <button class="btn" onclick="createProfile()">NEXT</button>
+    </div>
+
+    <div id="world-screen" style="display: none;">
+        <h2>Select World 🌍</h2>
+        <input type="text" id="world-name-input" class="input-field" placeholder="New World Name" maxlength="15">
+        <button class="btn" style="background: linear-gradient(135deg, #2ecc71, #27ae60);" onclick="createNewWorld()">CREATE NEW WORLD ➕</button>
+        
+        <div class="world-list" id="worlds-container">
+            </div>
     </div>
 
     <div id="menu-screen" style="display: none;">
-        <div id="vip-status-bar">👑 VIP ACTIVE! Time left: <span id="vip-timer">24:00:00</span></div>
-        <h2 id="welcome-msg">Welcome</h2>
+        <button class="back-btn" style="top:15px; left:140px;" onclick="exitWorld()">← Save & Quit World</button>
+        <div id="vip-status-bar" style="margin-top: 35px;">👑 VIP ACTIVE! Time left: <span id="vip-timer">24:00:00</span></div>
+        <h2 id="welcome-msg" style="margin-top: 40px;">Welcome</h2>
+        <div style="font-size: 14px; color: #00ffcc; font-weight: bold; margin-bottom: 5px;" id="current-world-tag">World: None</div>
         <div style="margin-bottom: 15px; font-weight: bold; color: #ffe066;" id="inventory-txt">Pass Cubes: 0</div>
         <button id="activate-vip-btn" class="btn" style="background: linear-gradient(135deg, #f5b041, #f39c12); color: black; display: none;" onclick="activateVip()">⚡ ACTIVATE 24H VIP 👑</button>
         <p>Choose a Game to Play:</p>
@@ -262,11 +323,20 @@
         let musicInterval = null;
         let currentMusicType = "";
 
+        // --- משתני משחק שישמרו בתוך ה"עולמות" ---
+        let currentWorldId = null;
         let cubes = 0; 
         let passCubes = 0;
-        let selectedShape = "⭕";
+        let clickPower = 1; 
+        let autoClickers = 0; 
+        let clickCost = 15; 
+        let autoCost = 50;
         let isVipActive = false;
         let vipEndTime = 0;
+        let selectedShape = "⭕";
+
+        // רשימת עולמות גלובלית ב-LocalStorage
+        let savedWorlds = JSON.parse(localStorage.getItem('arcade_worlds')) || {};
 
         window.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.key === 'w' || e.key === 'ArrowUp') {
@@ -287,13 +357,120 @@
             const name = document.getElementById('username-input').value.trim();
             if (name === "") { alert("Please enter a nickname!"); return; }
             currentUsername = currentAvatar + " " + name;
-            document.getElementById('welcome-msg').innerText = "Welcome, " + currentUsername;
+            
             document.getElementById('login-screen').style.display = "none";
+            document.getElementById('world-screen').style.display = "block";
+            loadWorldsList();
+        }
+
+        // --- מנגנון ניהול עולמות (Minecraft Style) ---
+        function loadWorldsList() {
+            const container = document.getElementById('worlds-container');
+            container.innerHTML = "";
+            
+            let keys = Object.keys(savedWorlds);
+            if (keys.length === 0) {
+                container.innerHTML = "<p style='color:#aaa; font-size:14px; margin-top:20px;'>No worlds found. Create one above!</p>";
+                return;
+            }
+            
+            keys.forEach(id => {
+                let w = savedWorlds[id];
+                let item = document.createElement('div');
+                item.className = "world-item";
+                
+                item.innerHTML = `
+                    <button class="world-name-btn" onclick="selectWorld('${id}')">🌍 ${w.name} (${w.cubes} Cubes)</button>
+                    <button class="world-delete-btn" onclick="deleteWorld('${id}', event)">Delete</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function createNewWorld() {
+            const nameInput = document.getElementById('world-name-input');
+            let name = nameInput.value.trim();
+            if (name === "") { alert("Please enter a world name!"); return; }
+            
+            let id = 'world_' + Date.now();
+            savedWorlds[id] = {
+                name: name,
+                cubes: 0,
+                passCubes: 0,
+                clickPower: 1,
+                autoClickers: 0,
+                clickCost: 15,
+                autoCost: 50,
+                isVipActive: false,
+                vipEndTime: 0
+            };
+            
+            localStorage.setItem('arcade_worlds', JSON.stringify(savedWorlds));
+            nameInput.value = "";
+            loadWorldsList();
+        }
+
+        function selectWorld(id) {
+            currentWorldId = id;
+            let w = savedWorlds[id];
+            
+            // טעינת הנתונים של העולם הנבחר
+            cubes = w.cubes;
+            passCubes = w.passCubes;
+            clickPower = w.clickPower;
+            autoClickers = w.autoClickers;
+            clickCost = w.clickCost;
+            autoCost = w.autoCost;
+            isVipActive = w.isVipActive;
+            vipEndTime = w.vipEndTime;
+            
+            document.getElementById('welcome-msg').innerText = "Welcome, " + currentUsername;
+            document.getElementById('current-world-tag').innerText = "World: " + w.name;
+            
+            document.getElementById('world-screen').style.display = "none";
             document.getElementById('menu-screen').style.display = "block";
             document.getElementById('vol-ctrl').style.display = "flex";
+            
             initAudio();
             checkVipStatus();
             startChillMusic();
+        }
+
+        function saveCurrentWorld() {
+            if (!currentWorldId || !savedWorlds[currentWorldId]) return;
+            
+            savedWorlds[currentWorldId] = {
+                name: savedWorlds[currentWorldId].name,
+                cubes: cubes,
+                passCubes: passCubes,
+                clickPower: clickPower,
+                autoClickers: autoClickers,
+                clickCost: clickCost,
+                autoCost: autoCost,
+                isVipActive: isVipActive,
+                vipEndTime: vipEndTime
+            };
+            
+            localStorage.setItem('arcade_worlds', JSON.stringify(savedWorlds));
+        }
+
+        function deleteWorld(id, event) {
+            event.stopPropagation();
+            if (confirm("Are you sure you want to delete this world forever?")) {
+                delete savedWorlds[id];
+                localStorage.setItem('arcade_worlds', JSON.stringify(savedWorlds));
+                loadWorldsList();
+            }
+        }
+
+        function exitWorld() {
+            saveCurrentWorld();
+            stopMusic();
+            currentWorldId = null;
+            document.getElementById('menu-screen').style.display = "none";
+            document.getElementById('vol-ctrl').style.display = "none";
+            document.getElementById('world-screen').style.display = "block";
+            loadWorldsList();
         }
 
         function initAudio() {
@@ -319,18 +496,20 @@
             passCubes--;
             isVipActive = true;
             vipEndTime = Date.now() + (24 * 60 * 60 * 1000);
+            saveCurrentWorld();
             updateInventoryUI();
             checkVipStatus();
         }
 
         function checkVipStatus() {
-            if (isVipActive) {
+            if (isVipActive && currentWorldId) {
                 let timeLeft = vipEndTime - Date.now();
                 if (timeLeft <= 0) {
                     isVipActive = false;
                     document.getElementById('vip-status-bar').style.display = "none";
                     document.getElementById('clicker-vip-badge').style.display = "none";
                     document.getElementById('run-vip-badge').style.display = "none";
+                    saveCurrentWorld();
                 } else {
                     document.getElementById('vip-status-bar').style.display = "block";
                     document.getElementById('clicker-vip-badge').style.display = "inline";
@@ -375,6 +554,7 @@
             document.getElementById('start-btn').style.display = "block"; 
             document.querySelectorAll('.game-window').forEach(window => window.style.display = "none");
             document.getElementById('menu-screen').style.display = "block";
+            saveCurrentWorld();
             updateInventoryUI();
             startChillMusic();
         }
@@ -400,19 +580,20 @@
         });
 
         // --- CUBE CLICKER ---
-        let clickPower = 1; let autoClickers = 0; let clickCost = 15; let autoCost = 50;
         function clickCube() { 
             let gain = clickPower * (isVipActive ? 2 : 1);
             cubes += gain; 
             updateClickerUI(); 
+            saveCurrentWorld();
         }
         function buyUpgrade(type) {
             if (type === 'click' && cubes >= clickCost) { cubes -= clickCost; clickPower += 1; clickCost = Math.floor(clickCost * 1.5); }
             else if (type === 'auto' && cubes >= autoCost) { cubes -= autoCost; autoClickers += 1; autoCost = Math.floor(autoCost * 1.6); }
             updateClickerUI();
+            saveCurrentWorld();
         }
         function updateClickerUI() { document.getElementById('cube-score').innerText = "Cubes: " + cubes; document.getElementById('cube-cps').innerText = "Per Second (CPS): " + (autoClickers * (isVipActive ? 2 : 1)); document.getElementById('up-click-btn').innerText = `Upgrade Click (+1) | Cost: ${clickCost}`; document.getElementById('up-auto-btn').innerText = `Auto Clicker (+1 CPS) | Cost: ${autoCost}`; }
-        setInterval(() => { if (autoClickers > 0 && document.getElementById('game-clicker').style.display === "flex") { cubes += autoClickers * (isVipActive ? 2 : 1); updateClickerUI(); } }, 1000);
+        setInterval(() => { if (autoClickers > 0 && document.getElementById('game-clicker').style.display === "flex") { cubes += autoClickers * (isVipActive ? 2 : 1); updateClickerUI(); saveCurrentWorld(); } }, 1000);
 
         // --- CUBE RUN VS DRAGON WITH SPIKES ---
         const canvas = document.getElementById('run-canvas'); const ctx = canvas.getContext('2d');
@@ -455,19 +636,10 @@
         
         function startRunGame() { 
             if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
-            obstacles = [];
-            runScore = 0;
-            gameSpeed = 5;
-            obstacleTimer = 0;
-            runner.y = 150;
-            runner.vy = 0;
-            runner.isGrounded = true;
-            
+            obstacles = []; runScore = 0; gameSpeed = 5; obstacleTimer = 0; runner.y = 150; runner.vy = 0; runner.isGrounded = true;
             runIsPlaying = true; 
             document.getElementById('run-start-btn').style.display = "none"; 
-            initAudio();
-            startTenseMusic(); 
-            updateRunGame(); 
+            initAudio(); startTenseMusic(); updateRunGame(); 
         }
         
         function playerJump() { if (runIsPlaying && runner.isGrounded) { runner.vy = runner.jumpPower; runner.isGrounded = false; } }
@@ -508,8 +680,7 @@
         }
         
         function gameOverRun() { 
-            runIsPlaying = false; 
-            stopMusic(); 
+            runIsPlaying = false; stopMusic(); 
             if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
             startChillMusic();
             
@@ -564,6 +735,7 @@
                         resultTxt.style.color = "#e74c3c";
                         resultTxt.innerText = `❌ No match! The winning shape was ${finalShape}. Try again!`;
                     }
+                    saveCurrentWorld();
                     updateInventoryUI();
                 }
             }, 100);
