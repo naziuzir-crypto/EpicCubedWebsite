@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EpicCubedHead - Arcade Games (v1.0)</title>
+    <title>EpicCubedHead - Arcade Games (v1.0.5)</title>
     <style>
         body {
             background-color: #000000;
@@ -32,717 +32,508 @@
             border: 1px solid #333;
         }
 
-        #world-screen, #menu-screen {
-            background: rgba(255, 255, 255, 0.05);
+        /* מסך בחירת עולמות */
+        .menu-container {
+            background: rgba(20, 20, 20, 0.95);
             padding: 30px;
-            border-radius: 20px;
-            border: 2px solid #4ca1af;
-            width: 350px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 2px solid #333;
             text-align: center;
-            box-shadow: 0 0 20px rgba(76, 161, 175, 0.3);
+            min-width: 350px;
+            max-width: 500px;
         }
 
-        .input-field {
-            width: 90%;
-            padding: 12px;
-            margin-bottom: 15px;
+        h1 {
+            margin-top: 0;
+            font-size: 28px;
+            letter-spacing: 1px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* כפתור ה-CubeNews החדש והמגניב */
+        .btn-news {
+            display: inline-block;
+            background: linear-gradient(135deg, #111 0%, #222 100%);
+            color: #00ff66;
+            border: 2px solid #00ff66;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
             border-radius: 8px;
-            border: 1px solid #4ca1af;
-            background: #111;
-            color: white;
-            font-size: 16px;
-            text-align: center;
-        }
-
-        .shape-selection {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
+            text-decoration: none;
             margin-bottom: 20px;
-        }
-
-        .shape-opt {
-            font-size: 30px;
-            padding: 8px;
-            border: 2px solid transparent;
-            border-radius: 10px;
-            cursor: pointer;
-            background: rgba(255,255,255,0.02);
             transition: 0.2s;
-        }
-        .shape-opt:hover { background: rgba(255,255,255,0.1); }
-        .selected-shape { border-color: #00ffcc; background: rgba(0,255,204,0.1); }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            margin: 8px 0;
-            border-radius: 8px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 16px;
-            background: linear-gradient(135deg, #4ca1af, #2c3e50);
-            color: white;
-            box-shadow: 0 4px 10px rgba(76, 161, 175, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.1);
         }
 
-        .game-window {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
+        .btn-news:hover {
+            background: #00ff66;
+            color: black;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+            transform: scale(1.03);
         }
-
-        #run-canvas {
-            background: #111;
-            border: 2px solid #00ffcc;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
-            cursor: pointer;
-        }
-
-        .cube {
-            width: 120px;
-            height: 120px;
-            background-color: #0055ff;
-            border: 4px solid #00ffcc;
-            border-radius: 15px;
-            box-shadow: 0 0 25px rgba(0, 85, 255, 0.6);
-            cursor: pointer;
-            transition: transform 0.05s;
-            margin: 20px 0;
-        }
-        .cube:active { transform: scale(0.92); }
-
-        .shop {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #00ffcc;
-            width: 280px;
-            margin-top: 20px;
-        }
-        .shop-btn {
-            background: #222;
-            color: #00ffcc;
-            border: 1px solid #00ffcc;
-            padding: 8px;
-            width: 100%;
-            margin: 5px 0;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        #vip-status-bar {
-            background: linear-gradient(135deg, #ffe066, #f5b041);
-            color: #000;
-            padding: 10px;
-            border-radius: 10px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: none;
-            font-size: 14px;
-            box-shadow: 0 0 15px rgba(245, 176, 65, 0.5);
-        }
-
-        .back-btn { position: absolute; top: 20px; left: 20px; background: #333; color: white; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; z-index: 100; }
-        
-        .volume-container {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #333;
-            padding: 8px 15px;
-            border-radius: 5px;
-            display: none;
-            z-index: 100;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .volume-slider { cursor: pointer; accent-color: #00ffcc; width: 150px; }
-        
-        #slot-display { font-size: 60px; margin: 20px 0; letter-spacing: 10px; height: 80px; }
 
         .world-list {
-            max-height: 180px;
+            margin: 20px 0;
+            max-height: 200px;
             overflow-y: auto;
-            margin: 15px 0;
-            padding: 5px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 5px;
         }
+
         .world-item {
+            background: #222;
+            padding: 12px 15px;
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 6px;
-            border: 1px solid #333;
+            border: 1px solid #444;
+            transition: 0.2s;
         }
-        .world-name-btn {
-            background: none;
-            border: none;
-            color: #00ffcc;
-            font-weight: bold;
-            cursor: pointer;
+
+        .world-item:hover {
+            border-color: #00ff66;
+            background: #2a2a2a;
+        }
+
+        .world-info {
             text-align: left;
-            font-size: 15px;
+            cursor: pointer;
             flex-grow: 1;
         }
-        .world-delete-btn {
-            background: #e74c3c;
+
+        .world-name {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .world-meta {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 2px;
+        }
+
+        .world-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit {
+            background: #ffcc00;
+            color: #000;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-delete {
+            background: #ff3333;
             color: white;
             border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 10px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 12px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            background: #111;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .btn-main {
+            background: #00ff66;
+            color: black;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
             font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 85%;
+        }
+
+        .btn-main:hover {
+            background: #00cc55;
+            box-shadow: 0 0 12px rgba(0,255,102,0.4);
+        }
+
+        /* אזור המשחק */
+        #game-area {
+            display: none;
+            position: relative;
+        }
+
+        canvas {
+            background-color: #111111;
+            border: 4px solid #333333;
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+        }
+
+        /* סרגל הכלים של ה-Editor */
+        #editor-toolbar {
+            display: none;
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 15, 15, 0.95);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #444;
+            gap: 10px;
+            z-index: 100;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        #editor-toolbar button {
+            color: white;
+            padding: 8px 14px;
+            border: 1px solid #555;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: 0.1s;
+        }
+
+        #editor-toolbar button.active {
+            border-color: #00ff66;
+            box-shadow: 0 0 8px rgba(0,255,102,0.5);
         }
     </style>
 </head>
 <body>
 
-    <div id="version-tag">game version: 1.0</div>
+    <div id="version-tag">version:1.0.5</div>
 
-    <div id="vol-ctrl" class="volume-container">
-        <span>🎵 Vol: <span id="vol-txt">100%</span></span>
-        <input type="range" id="volume-slider" class="volume-slider" min="0" max="2000" value="100" oninput="changeVolume(this.value)">
-    </div>
-
-    <div id="world-screen">
-        <h2>Select World 🌍</h2>
-        <input type="text" id="world-name-input" class="input-field" placeholder="New World Name" maxlength="15">
-        <button class="btn" style="background: linear-gradient(135deg, #2ecc71, #27ae60);" onclick="createNewWorld()">CREATE NEW WORLD ➕</button>
+    <div id="world-menu" class="menu-container">
+        <h1>Select World 🌍</h1>
         
-        <div class="world-list" id="worlds-container">
-            </div>
+        <a href="news.html" class="btn-news">📰 Read CubeNews Daily</a>
+
+        <div class="world-list" id="worlds-container"></div>
+        <hr style="border: 1px solid #333; margin: 20px 0;">
+        <input type="text" id="new-world-name" placeholder="Enter World Name..." maxlength="15">
+        <button class="btn-main" onclick="createNewWorld()">Create New World ➕</button>
     </div>
 
-    <div id="menu-screen" style="display: none;">
-        <button class="back-btn" style="top:15px; left:140px;" onclick="exitWorld()">← Save & Quit</button>
-        <div id="vip-status-bar" style="margin-top: 35px;">👑 VIP ACTIVE! Time left: <span id="vip-timer">24:00:00</span></div>
-        <h2 style="margin-top: 40px;">Epic Arcade Menu</h2>
-        <div style="font-size: 14px; color: #00ffcc; font-weight: bold; margin-bottom: 5px;" id="current-world-tag">World: None</div>
-        <div style="margin-bottom: 15px; font-weight: bold; color: #ffe066;" id="inventory-txt">Pass Cubes: 0</div>
-        <button id="activate-vip-btn" class="btn" style="background: linear-gradient(135deg, #f5b041, #f39c12); color: black; display: none;" onclick="activateVip()">⚡ ACTIVATE 24H VIP 👑</button>
-        <p>Choose a Game to Play:</p>
-        <button class="btn" onclick="openGame('reaction')">1. Reaction Time! ⏱️</button>
-        <button class="btn" onclick="openGame('clicker')">2. CubeClicker 🟦</button>
-        <button class="btn" style="background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="openGame('run')">3. CUBE RUN vs DRAGON! 🏃‍♂️🐉</button>
-        <button class="btn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white;" onclick="openGame('bet')">4. BET ON THE SHAPE 🎰🔮</button>
-    </div>
-
-    <div id="game-reaction" class="game-window">
-        <button class="back-btn" onclick="backToMenu()">← Menu</button>
-        <div style="text-align:center; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <div id="status-text" style="font-size: 24px; font-weight: bold;">Reaction Time Challenge!</div>
-            <div id="result-text" style="font-size: 36px; color: #00ffcc; margin-top: 10px;"></div>
-            <button id="start-btn" class="btn" style="width: auto; padding: 10px 30px; margin: 20px auto;" onclick="startReactionGame(event)">START</button>
-            <div id="leaderboard">
-                <h3>Local Stats 🌍</h3>
-                <div id="leaderboard-entries">Ready to test your speed!</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="game-clicker" class="game-window">
-        <button class="back-btn" onclick="backToMenu()">← Menu</button>
-        <h2>CubeClicker 🟦 <span id="clicker-vip-badge" style="color: #ffe066; display: none;">(X2 Active!)</span></h2>
-        <div id="cube-score" style="font-size: 28px; font-weight: bold; color: #00ffcc;">Cubes: 0</div>
-        <div id="cube-cps" style="font-size: 16px; color: #aaa;">Per Second (CPS): 0</div>
-        <div class="cube" onclick="clickCube()"></div>
-        <div class="shop">
-            <h3>Upgrades Shop</h3>
-            <button class="shop-btn" id="up-click-btn" onclick="buyUpgrade('click')">Upgrade Click (+1) | Cost: 15</button>
-            <button class="shop-btn" id="up-auto-btn" onclick="buyUpgrade('auto')">Auto Clicker (+1 CPS) | Cost: 50</button>
-        </div>
-    </div>
-
-    <div id="game-run" class="game-window">
-        <button class="back-btn" onclick="backToMenu()">← Menu</button>
-        <h2>Cube Run vs Dragon! 🏃‍♂️💨🐉 <span id="run-vip-badge" style="color: #ffe066; display: none;">(0.75x Slowdown!)</span></h2>
-        <div id="run-score" style="font-size: 24px; font-weight: bold; color: #ffcc00; margin-bottom: 10px;">Score: 0</div>
-        <canvas id="run-canvas" width="550" height="220" onclick="playerJump()"></canvas>
-        <p style="font-size: 14px; color: #aaa; margin-top: 10px;">Click screen or press SPACEBAR/W to Jump over Spikes!</p>
-        <button id="run-start-btn" class="btn" style="width: auto; padding: 10px 30px; background: linear-gradient(135deg, #ff5500, #ffcc00); color: black;" onclick="startRunGame()">START RUN</button>
-    </div>
-
-    <div id="game-bet" class="game-window">
-        <button class="back-btn" onclick="backToMenu()">← Menu</button>
-        <h2>🔮 Bet on the Shape 🔮</h2>
-        <p style="font-size: 14px; color: #aaa;">Guess the winning shape to win a <b>Pass Cube (24H VIP)</b>!</p>
-        <div style="font-size: 20px; font-weight: bold; color: #00ffcc; margin-bottom: 10px;" id="bet-cubes-display">Cubes: 0</div>
+    <div id="editor-toolbar">
+        <button onclick="setEditorTool('player')" id="tool-player" style="background: #007bff;">👤 Player</button>
+        <button onclick="setEditorTool('obstacle')" id="tool-obstacle" style="background: #222;">🔺 Obstacle</button>
+        <button onclick="setEditorTool('portal')" id="tool-portal" style="background: #222;">🌀 Portal</button>
+        <button onclick="setEditorTool('eraser')" id="tool-eraser" style="background: #dc3545;">🧽 Eraser</button>
         
-        <div class="shape-selection">
-            <span class="shape-opt selected-shape" onclick="selectBetShape(this, '⭕')">⭕ Circle</span>
-            <span class="shape-opt" onclick="selectBetShape(this, '🟦')">🟦 Square</span>
-            <span class="shape-opt" onclick="selectBetShape(this, '🔺')">🔺 Triangle</span>
-        </div>
+        <div style="width: 2px; height: 25px; background: #444; margin: 0 5px;"></div>
+        
+        <button onclick="editorUndo()" style="background: #555;" title="Ctrl + Z">↩️ Undo</button>
+        <button onclick="editorRedo()" style="background: #555;" title="Ctrl + Y">↪️ Redo</button>
+        
+        <button onclick="exitEditor()" style="background: #28a745; margin-left: 15px;">💾 Save & Exit</button>
+    </div>
 
-        <div style="margin-bottom: 15px;">
-            <label>Bet Amount (Min 10 Cubes): </label>
-            <input type="number" id="bet-amount-input" class="input-field" value="10" min="10" style="width: 80px; margin-left: 10px; padding: 5px;">
-        </div>
-
-        <div id="slot-display">🔮</div>
-        <div id="bet-result" style="font-size: 18px; font-weight: bold; min-height: 25px; margin-bottom: 10px;"></div>
-        <button id="roll-bet-btn" class="btn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);" onclick="rollBet()">PLACE BET & ROLL</button>
+    <div id="game-area">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
     </div>
 
     <script>
-        let audioCtx = null;
-        let mainGainNode = null;
-        let userVolumeMultiplier = 1.0; 
-        let runAnimationId = null;
-        let runScore = 0;
-        let runIsPlaying = false;
-        let musicInterval = null;
-        let currentMusicType = "";
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-        // --- משתני המערכת של העולם הנוכחי ---
-        let currentWorldId = null;
-        let cubes = 0; 
-        let passCubes = 0;
-        let clickPower = 1; 
-        let autoClickers = 0; 
-        let clickCost = 15; 
-        let autoCost = 50;
-        let isVipActive = false;
-        let vipEndTime = 0;
-        let selectedShape = "⭕";
+        // משתני מערכת העולמות והמשחק
+        let worlds = JSON.parse(localStorage.getItem('epic_cubed_worlds')) || [];
+        let currentWorldIndex = null;
+        let isEditorMode = false;
+        let currentTool = 'obstacle';
 
-        let savedWorlds = JSON.parse(localStorage.getItem('arcade_worlds')) || {};
+        // מערכת Undo / Redo
+        let undoStack = [];
+        let redoStack = [];
 
-        // טעינת רשימת העולמות מיד כשהדף עולה
-        window.onload = function() {
-            loadWorldsList();
+        // נתוני השלב הנוכחי
+        let levelData = {
+            playerStart: { x: 100, y: 300 },
+            obstacles: [],
+            portals: []
         };
 
-        window.addEventListener('keydown', (e) => {
-            if (e.key === ' ' || e.key === 'w' || e.key === 'ArrowUp') {
-                if (document.getElementById('game-run').style.display === "flex") {
-                    e.preventDefault();
-                    playerJump();
-                }
-            }
-        });
+        // משתני ריצה למשחק
+        let player = { x: 100, y: 300, width: 30, height: 30, vy: 0, isGrounded: true };
+        let gameActive = false;
+        const gravity = 0.6;
 
-        function loadWorldsList() {
+        // טעינה ראשונית של התפריט
+        renderWorlds();
+
+        function renderWorlds() {
             const container = document.getElementById('worlds-container');
-            container.innerHTML = "";
+            container.innerHTML = '';
             
-            let keys = Object.keys(savedWorlds);
-            if (keys.length === 0) {
-                container.innerHTML = "<p style='color:#aaa; font-size:14px; margin-top:20px;'>No worlds found. Create one above!</p>";
+            if (worlds.length === 0) {
+                container.innerHTML = '<div style="color: #666; margin-top: 20px;">No worlds found. Create one below!</div>';
                 return;
             }
-            
-            keys.forEach(id => {
-                let w = savedWorlds[id];
-                let item = document.createElement('div');
-                item.className = "world-item";
-                
+
+            worlds.forEach((world, index) => {
+                const item = document.createElement('div');
+                item.className = 'world-item';
                 item.innerHTML = `
-                    <button class="world-name-btn" onclick="selectWorld('${id}')">🌍 ${w.name} (${w.cubes} Cubes)</button>
-                    <button class="world-delete-btn" onclick="deleteWorld('${id}', event)">Delete</button>
+                    <div class="world-info" onclick="playWorld(${index})">
+                        <div class="world-name">${world.name}</div>
+                        <div class="world-meta">Last played: ${world.date}</div>
+                    </div>
+                    <div class="world-actions">
+                        <button class="btn-edit" onclick="editWorld(${index})" title="Edit World">✏️</button>
+                        <button class="btn-delete" onclick="deleteWorld(${index})">🗑️</button>
+                    </div>
                 `;
                 container.appendChild(item);
             });
         }
 
         function createNewWorld() {
-            const nameInput = document.getElementById('world-name-input');
-            let name = nameInput.value.trim();
-            if (name === "") { alert("Please enter a world name!"); return; }
-            
-            let id = 'world_' + Date.now();
-            savedWorlds[id] = {
+            const input = document.getElementById('new-world-name');
+            const name = input.value.trim();
+            if (!name) return;
+
+            const newWorld = {
                 name: name,
-                cubes: 0,
-                passCubes: 0,
-                clickPower: 1,
-                autoClickers: 0,
-                clickCost: 15,
-                autoCost: 50,
-                isVipActive: false,
-                vipEndTime: 0
-            };
-            
-            localStorage.setItem('arcade_worlds', JSON.stringify(savedWorlds));
-            nameInput.value = "";
-            loadWorldsList();
-        }
-
-        function selectWorld(id) {
-            currentWorldId = id;
-            let w = savedWorlds[id];
-            
-            cubes = w.cubes;
-            passCubes = w.passCubes;
-            clickPower = w.clickPower;
-            autoClickers = w.autoClickers;
-            clickCost = w.clickCost;
-            autoCost = w.autoCost;
-            isVipActive = w.isVipActive;
-            vipEndTime = w.vipEndTime;
-            
-            document.getElementById('current-world-tag').innerText = "World: " + w.name;
-            
-            document.getElementById('world-screen').style.display = "none";
-            document.getElementById('menu-screen').style.display = "block";
-            document.getElementById('vol-ctrl').style.display = "flex";
-            
-            initAudio();
-            checkVipStatus();
-            startChillMusic();
-        }
-
-        function saveCurrentWorld() {
-            if (!currentWorldId || !savedWorlds[currentWorldId]) return;
-            
-            savedWorlds[currentWorldId] = {
-                name: savedWorlds[currentWorldId].name,
-                cubes: cubes,
-                passCubes: passCubes,
-                clickPower: clickPower,
-                autoClickers: autoClickers,
-                clickCost: clickCost,
-                autoCost: autoCost,
-                isVipActive: isVipActive,
-                vipEndTime: vipEndTime
-            };
-            
-            localStorage.setItem('arcade_worlds', JSON.stringify(savedWorlds));
-        }
-
-        function deleteWorld(id, event) {
-            event.stopPropagation();
-            if (confirm("Are you sure you want to delete this world forever?")) {
-                delete savedWorlds[id];
-                localStorage.setItem('arcade_worlds', JSON.stringify(savedWorlds));
-                loadWorldsList();
-            }
-        }
-
-        function exitWorld() {
-            saveCurrentWorld();
-            stopMusic();
-            currentWorldId = null;
-            document.getElementById('menu-screen').style.display = "none";
-            document.getElementById('vol-ctrl').style.display = "none";
-            document.getElementById('world-screen').style.display = "block";
-            loadWorldsList();
-        }
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                mainGainNode = audioCtx.createGain();
-                mainGainNode.connect(audioCtx.destination);
-            }
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-            mainGainNode.gain.setValueAtTime(0.15 * userVolumeMultiplier, audioCtx.currentTime);
-        }
-
-        function changeVolume(value) {
-            document.getElementById('vol-txt').innerText = value + "%";
-            userVolumeMultiplier = value / 100;
-            if (mainGainNode && audioCtx) {
-                mainGainNode.gain.setValueAtTime(0.15 * userVolumeMultiplier, audioCtx.currentTime);
-            }
-        }
-
-        function activateVip() {
-            if (passCubes <= 0) return;
-            passCubes--;
-            isVipActive = true;
-            vipEndTime = Date.now() + (24 * 60 * 60 * 1000);
-            saveCurrentWorld();
-            updateInventoryUI();
-            checkVipStatus();
-        }
-
-        function checkVipStatus() {
-            if (isVipActive && currentWorldId) {
-                let timeLeft = vipEndTime - Date.now();
-                if (timeLeft <= 0) {
-                    isVipActive = false;
-                    document.getElementById('vip-status-bar').style.display = "none";
-                    document.getElementById('clicker-vip-badge').style.display = "none";
-                    document.getElementById('run-vip-badge').style.display = "none";
-                    saveCurrentWorld();
-                } else {
-                    document.getElementById('vip-status-bar').style.display = "block";
-                    document.getElementById('clicker-vip-badge').style.display = "inline";
-                    document.getElementById('run-vip-badge').style.display = "inline";
-                    
-                    let hrs = Math.floor(timeLeft / (1000 * 60 * 60));
-                    let mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                    let secs = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                    document.getElementById('vip-timer').innerText = 
-                        `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                date: new Date().toLocaleDateString(),
+                level: {
+                    playerStart: { x: 100, y: 330 },
+                    obstacles: [{ x: 400, y: 330, width: 30, height: 30 }, { x: 600, y: 330, width: 30, height: 30 }],
+                    portals: [{ x: 750, y: 310, width: 40, height: 50 }]
                 }
-            }
-            setTimeout(checkVipStatus, 1000);
+            };
+
+            worlds.push(newWorld);
+            localStorage.setItem('epic_cubed_worlds', JSON.stringify(worlds));
+            input.value = '';
+            renderWorlds();
         }
 
-        function updateInventoryUI() {
-            document.getElementById('inventory-txt').innerText = "Pass Cubes: " + passCubes;
-            document.getElementById('bet-cubes-display').innerText = "Cubes: " + cubes;
-            if (passCubes > 0 && !isVipActive) {
-                document.getElementById('activate-vip-btn').style.display = "block";
-            } else {
-                document.getElementById('activate-vip-btn').style.display = "none";
-            }
+        function deleteWorld(index) {
+            worlds.splice(index, 1);
+            localStorage.setItem('epic_cubed_worlds', JSON.stringify(worlds));
+            renderWorlds();
         }
 
-        function openGame(gameType) {
-            document.querySelectorAll('.game-window').forEach(w => w.style.display = "none");
-            document.getElementById('menu-screen').style.display = "none";
-            updateInventoryUI();
+        // שמירת מצב בשביל Undo
+        function saveHistoryState() {
+            undoStack.push(JSON.stringify(levelData));
+            redoStack = []; 
+        }
+
+        // ביצוע Undo (Ctrl+Z)
+        function editorUndo() {
+            if (undoStack.length === 0) return;
+            redoStack.push(JSON.stringify(levelData));
+            levelData = JSON.parse(undoStack.pop());
+            drawEditor();
+        }
+
+        // ביצוע Redo (Ctrl+Y)
+        function editorRedo() {
+            if (redoStack.length === 0) return;
+            undoStack.push(JSON.stringify(levelData));
+            levelData = JSON.parse(redoStack.pop());
+            drawEditor();
+        }
+
+        // כניסה למצב עריכה (העיפרון)
+        function editWorld(index) {
+            currentWorldIndex = index;
+            isEditorMode = true;
+            levelData = worlds[index].level;
             
-            if (gameType === 'reaction') { document.getElementById('game-reaction').style.display = "flex"; startChillMusic(); }
-            else if (gameType === 'clicker') { document.getElementById('game-clicker').style.display = "flex"; updateClickerUI(); startChillMusic(); }
-            else if (gameType === 'run') { document.getElementById('game-run').style.display = "flex"; initRunGame(); }
-            else if (gameType === 'bet') { document.getElementById('game-bet').style.display = "flex"; startChillMusic(); }
-        }
+            undoStack = [];
+            redoStack = [];
 
-        function backToMenu() {
-            clearTimeout(timeoutId); 
-            if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
-            runIsPlaying = false; reactionState = "idle";
-            document.body.style.backgroundColor = "#000000";
-            document.getElementById('start-btn').style.display = "block"; 
-            document.querySelectorAll('.game-window').forEach(window => window.style.display = "none");
-            document.getElementById('menu-screen').style.display = "block";
-            saveCurrentWorld();
-            updateInventoryUI();
-            startChillMusic();
-        }
-
-        // --- REACTION TIME ---
-        let reactionState = "idle"; let startTime = 0; let timeoutId = null;
-        function startReactionGame(event) {
-            event.stopPropagation(); reactionState = "waiting";
-            document.body.style.backgroundColor = "#000000";
-            document.getElementById('status-text').innerText = "Wait for Blue..."; document.getElementById('result-text').innerText = ""; document.getElementById('start-btn').style.display = "none";
+            document.getElementById('world-menu').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+            document.getElementById('editor-toolbar').style.display = 'flex';
             
-            let waitTime = Math.floor(Math.random() * 3000) + (isVipActive ? 1500 : 1000);
-            timeoutId = setTimeout(() => { 
-                reactionState = "clickMe"; 
-                document.body.style.backgroundColor = "#0055ff";
-                document.getElementById('status-text').innerText = "CLICK NOW!!!"; 
-                startTime = window.performance.now(); 
-            }, waitTime);
+            setEditorTool('obstacle');
+            drawEditor();
         }
-        document.getElementById('game-reaction').addEventListener('click', () => {
-            if (reactionState === "waiting") { clearTimeout(timeoutId); reactionState = "idle"; document.body.style.backgroundColor = "#000000"; document.getElementById('status-text').innerText = "Too early!"; document.getElementById('start-btn').style.display = "block"; }
-            else if (reactionState === "clickMe") { let diff = parseFloat(((window.performance.now() - startTime) / 1000).toFixed(3)); reactionState = "finished"; document.body.style.backgroundColor = "#000000"; document.getElementById('status-text').innerText = "Your Time:"; document.getElementById('result-text').innerText = diff + "s"; document.getElementById('start-btn').style.display = "block"; document.getElementById('leaderboard-entries').innerText = `Last score: ${diff}s!`; }
-        });
 
-        // --- CUBE CLICKER ---
-        function clickCube() { 
-            let gain = clickPower * (isVipActive ? 2 : 1);
-            cubes += gain; 
-            updateClickerUI(); 
-            saveCurrentWorld();
+        function setEditorTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('#editor-toolbar button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tool-${tool}`).classList.add('active');
         }
-        function buyUpgrade(type) {
-            if (type === 'click' && cubes >= clickCost) { cubes -= clickCost; clickPower += 1; clickCost = Math.floor(clickCost * 1.5); }
-            else if (type === 'auto' && cubes >= autoCost) { cubes -= autoCost; autoClickers += 1; autoCost = Math.floor(autoCost * 1.6); }
-            updateClickerUI();
-            saveCurrentWorld();
-        }
-        function updateClickerUI() { document.getElementById('cube-score').innerText = "Cubes: " + cubes; document.getElementById('cube-cps').innerText = "Per Second (CPS): " + (autoClickers * (isVipActive ? 2 : 1)); document.getElementById('up-click-btn').innerText = `Upgrade Click (+1) | Cost: ${clickCost}`; document.getElementById('up-auto-btn').innerText = `Auto Clicker (+1 CPS) | Cost: ${autoCost}`; }
-        setInterval(() => { if (autoClickers > 0 && document.getElementById('game-clicker').style.display === "flex") { cubes += autoClickers * (isVipActive ? 2 : 1); updateClickerUI(); saveCurrentWorld(); } }, 1000);
 
-        // --- CUBE RUN VS DRAGON WITH SPIKES ---
-        const canvas = document.getElementById('run-canvas'); const ctx = canvas.getContext('2d');
-        let runner = { x: 140, y: 150, w: 30, h: 30, vy: 0, gravity: 0.6, jumpPower: -11, isGrounded: true };
-        let obstacles = []; let obstacleTimer = 0; let gameSpeed = 5;
-        
-        function initRunGame() { 
-            runIsPlaying = false;
-            if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
-            runScore = 0; gameSpeed = 5; obstacles = []; runner.y = 150; runner.vy = 0; runner.isGrounded = true; obstacleTimer = 0;
-            document.getElementById('run-score').innerText = "Score: 0"; 
-            document.getElementById('run-start-btn').style.display = "block"; 
-            document.getElementById('run-start-btn').innerText = "START RUN";
-            drawRunScene(); 
-            startChillMusic();
-        }
-        
-        function drawSpike(x, y, width, height) {
-            ctx.fillStyle = "#ff2255";
+        // ציור ה-Editor על המסך
+        function drawEditor() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(x, y + height);
-            ctx.lineTo(x + width / 2, y);
-            ctx.lineTo(x + width, y + height);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke();
-        }
-        
-        function drawRunScene() { 
-            ctx.clearRect(0, 0, canvas.width, canvas.height); 
-            ctx.fillStyle = "#444"; ctx.fillRect(0, 180, canvas.width, 40); 
-            ctx.font = "45px Arial"; ctx.fillText("🐉", 20, 165);
-            ctx.fillStyle = "#0055ff"; ctx.fillRect(runner.x, runner.y, runner.w, runner.h); 
-            
-            obstacles.forEach(obs => {
-                if (obs.type === 'spike') { drawSpike(obs.x, obs.y, obs.w, obs.h); } 
-                else { ctx.fillStyle = "#ffaa00"; ctx.fillRect(obs.x, obs.y, obs.w, obs.h); }
+            ctx.moveTo(0, 360);
+            ctx.lineTo(canvas.width, 360);
+            ctx.stroke();
+
+            ctx.fillStyle = '#007bff';
+            ctx.fillRect(levelData.playerStart.x, levelData.playerStart.y, 30, 30);
+            ctx.fillStyle = 'white';
+            ctx.font = '12px sans-serif';
+            ctx.fillText("Start", levelData.playerStart.x - 2, levelData.playerStart.y - 10);
+
+            ctx.fillStyle = '#ff3333';
+            levelData.obstacles.forEach(obs => {
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            });
+
+            levelData.portals.forEach(portal => {
+                ctx.fillStyle = '#00ff66';
+                ctx.fillRect(portal.x, portal.y, portal.width, portal.height);
+                ctx.strokeStyle = '#00ff66';
+                ctx.strokeRect(portal.x - 4, portal.y - 4, portal.width + 8, portal.height + 8);
             });
         }
-        
-        function startRunGame() { 
-            if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
-            obstacles = []; runScore = 0; gameSpeed = 5; obstacleTimer = 0; runner.y = 150; runner.vy = 0; runner.isGrounded = true;
-            runIsPlaying = true; 
-            document.getElementById('run-start-btn').style.display = "none"; 
-            initAudio(); startTenseMusic(); updateRunGame(); 
-        }
-        
-        function playerJump() { if (runIsPlaying && runner.isGrounded) { runner.vy = runner.jumpPower; runner.isGrounded = false; } }
-        
-        function updateRunGame() {
-            if (!runIsPlaying) return; 
-            
-            runner.vy += runner.gravity; runner.y += runner.vy; 
-            if (runner.y >= 150) { runner.y = 150; runner.vy = 0; runner.isGrounded = true; }
-            
-            obstacleTimer++;
-            let nextObstacleInterval = (Math.floor(Math.random() * 35) + 55) * (isVipActive ? 1.3 : 1.0);
-            if (obstacleTimer > nextObstacleInterval) { 
-                let isSpike = Math.random() > 0.3;
-                if (isSpike) { obstacles.push({ x: canvas.width, y: 150, w: 25, h: 30, type: 'spike' }); } 
-                else { obstacles.push({ x: canvas.width, y: 155, w: 20, h: 25, type: 'block' }); }
-                obstacleTimer = 0; 
+
+        canvas.addEventListener('mousedown', function(e) {
+            if (!isEditorMode) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = Math.round((e.clientX - rect.left) / 10) * 10; 
+            const mouseY = Math.round((e.clientY - rect.top) / 10) * 10;
+
+            saveHistoryState(); 
+
+            if (currentTool === 'player') {
+                levelData.playerStart = { x: mouseX - 15, y: mouseY - 15 };
+            } 
+            else if (currentTool === 'obstacle') {
+                levelData.obstacles.push({ x: mouseX - 15, y: mouseY - 15, width: 30, height: 30 });
+            } 
+            else if (currentTool === 'portal') {
+                levelData.portals.push({ x: mouseX - 20, y: mouseY - 25, width: 40, height: 50 });
+            } 
+            else if (currentTool === 'eraser') {
+                levelData.obstacles = levelData.obstacles.filter(obs => 
+                    !(mouseX >= obs.x && mouseX <= obs.x + obs.width && mouseY >= obs.y && mouseY <= obs.y + obs.height)
+                );
+                levelData.portals = levelData.portals.filter(p => 
+                    !(mouseX >= p.x && mouseX <= p.x + p.width && mouseY >= p.y && mouseY <= p.y + p.height)
+                );
             }
-            
-            let currentSpeed = gameSpeed * (isVipActive ? 0.75 : 1.0);
-            
-            for (let i = obstacles.length - 1; i >= 0; i--) { 
-                obstacles[i].x -= currentSpeed; 
-                
-                if (runner.x < obstacles[i].x + obstacles[i].w && runner.x + runner.w > obstacles[i].x && runner.y < obstacles[i].y + obstacles[i].h && runner.y + runner.h > obstacles[i].y) { 
-                    gameOverRun(); return; 
-                } 
-                if (obstacles[i].x + obstacles[i].w < 0) { 
-                    obstacles.splice(i, 1); 
-                    runScore++; 
-                    document.getElementById('run-score').innerText = "Score: " + runScore; 
-                    gameSpeed += 0.35; 
-                } 
+
+            drawEditor();
+        });
+
+        window.addEventListener('keydown', function(e) {
+            if (!isEditorMode) return;
+
+            if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                editorUndo();
             }
+            if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                editorRedo();
+            }
+        });
+
+        function exitEditor() {
+            worlds[currentWorldIndex].level = levelData;
+            worlds[currentWorldIndex].date = new Date().toLocaleDateString();
+            localStorage.setItem('epic_cubed_worlds', JSON.stringify(worlds));
             
-            drawRunScene();
-            runAnimationId = requestAnimationFrame(updateRunGame);
-        }
-        
-        function gameOverRun() { 
-            runIsPlaying = false; stopMusic(); 
-            if (runAnimationId) { cancelAnimationFrame(runAnimationId); runAnimationId = null; }
-            startChillMusic();
-            
-            ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#ff3300"; ctx.font = "bold 30px Segoe UI"; ctx.textAlign = "center";
-            ctx.fillText("THE DRAGON CAUGHT YOU! 💀", canvas.width / 2, canvas.height / 2);
-            
-            document.getElementById('run-start-btn').style.display = "block"; 
-            document.getElementById('run-start-btn').innerText = "TRY AGAIN"; 
+            isEditorMode = false;
+            document.getElementById('editor-toolbar').style.display = 'none';
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('world-menu').style.display = 'block';
+            renderWorlds();
         }
 
-        // --- BET ON THE SHAPE ---
-        function selectBetShape(element, shape) {
-            document.querySelectorAll('.shape-opt').forEach(opt => opt.classList.remove('selected-shape'));
-            element.classList.add('selected-shape');
-            selectedShape = shape;
+        function playWorld(index) {
+            currentWorldIndex = index;
+            isEditorMode = false;
+            levelData = worlds[index].level;
+
+            document.getElementById('world-menu').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+
+            player.x = levelData.playerStart.x;
+            player.y = levelData.playerStart.y;
+            player.vy = 0;
+            player.isGrounded = true;
+
+            gameActive = true;
+            gameLoop();
         }
 
-        function rollBet() {
-            let betInput = document.getElementById('bet-amount-input');
-            let betAmount = parseInt(betInput.value);
-            let resultTxt = document.getElementById('bet-result');
-            let slotDisp = document.getElementById('slot-display');
-            
-            if (isNaN(betAmount) || betAmount < 10) { alert("Minimum bet is 10 Cubes!"); return; }
-            if (cubes < betAmount) { alert("You don't have enough cubes to place this bet!"); return; }
-            
-            cubes -= betAmount;
-            document.getElementById('bet-cubes-display').innerText = "Cubes: " + cubes;
-            resultTxt.innerText = "Rolling the shapes...";
-            document.getElementById('roll-bet-btn').disabled = true;
-            
-            let shapes = ['⭕', '🟦', '🔺'];
-            let counter = 0;
-            
-            let interval = setInterval(() => {
-                let randomShape = shapes[Math.floor(Math.random() * shapes.length)];
-                slotDisp.innerText = randomShape;
-                counter++;
-                
-                if (counter > 15) {
-                    clearInterval(interval);
-                    let finalShape = shapes[Math.floor(Math.random() * shapes.length)];
-                    slotDisp.innerText = finalShape;
-                    document.getElementById('roll-bet-btn').disabled = false;
-                    
-                    if (finalShape === selectedShape) {
-                        passCubes++;
-                        resultTxt.style.color = "#2ecc71";
-                        resultTxt.innerHTML = `🎉 MATCH! You won 1 Pass Cube! 👑`;
-                    } else {
-                        resultTxt.style.color = "#e74c3c";
-                        resultTxt.innerText = `❌ No match! The winning shape was ${finalShape}. Try again!`;
-                    }
-                    saveCurrentWorld();
-                    updateInventoryUI();
+        window.addEventListener('keydown', function(e) {
+            if (gameActive && (e.code === 'Space' || e.code === 'ArrowUp') && player.isGrounded) {
+                player.vy = -12;
+                player.isGrounded = false;
+            }
+        });
+
+        function gameLoop() {
+            if (!gameActive) return;
+
+            player.vy += gravity;
+            player.y += player.vy;
+
+            if (player.y >= 330) { 
+                player.y = 330;
+                player.vy = 0;
+                player.isGrounded = true;
+            }
+
+            levelData.obstacles.forEach(obs => {
+                if (player.x < obs.x + obs.width && player.x + player.width > obs.x &&
+                    player.y < obs.y + obs.height && player.y + player.height > obs.y) {
+                    player.x = levelData.playerStart.x;
+                    player.y = levelData.playerStart.y;
                 }
-            }, 100);
-        }
+            });
 
-        // --- מנגנון מוזיקה ---
-        function startChillMusic() {
-            if (currentMusicType === "chill") return;
-            stopMusic(); currentMusicType = "chill";
-            let noteIndex = 0;
-            const chillNotes = [261.63, 293.66, 329.63, 349.23, 392.00, 349.23, 329.63, 293.66]; 
-            musicInterval = setInterval(() => {
-                if (currentMusicType !== "chill" || !audioCtx) return;
-                try {
-                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(chillNotes[noteIndex], audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-                    osc.connect(gain); gain.connect(mainGainNode); osc.start(); osc.stop(audioCtx.currentTime + 0.6);
-                    noteIndex = (noteIndex + 1) % chillNotes.length;
-                } catch(e) {}
-            }, 600);
-        }
+            levelData.portals.forEach(portal => {
+                if (player.x < portal.x + portal.width && player.x + player.width > portal.x &&
+                    player.y < portal.y + portal.height && player.y + player.height > portal.y) {
+                    alert("World Completed! 🎉");
+                    gameActive = false;
+                    document.getElementById('game-area').style.display = 'none';
+                    document.getElementById('world-menu').style.display = 'block';
+                    renderWorlds();
+                }
+            });
 
-        function startTenseMusic() {
-            stopMusic(); currentMusicType = "run";
-            musicInterval = setInterval(() => {
-                if (currentMusicType !== "run" || !audioCtx) return;
-                try {
-                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(110 + (Math.random() > 0.5 ? 6 : 0), audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-                    osc.connect(gain); gain.connect(mainGainNode); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-                } catch(e) {}
-            }, 250);
-        }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, 360, canvas.width, 40);
 
-        function stopMusic() { if (musicInterval) clearInterval(musicInterval); currentMusicType = ""; }
+            ctx.fillStyle = '#00ff66';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            ctx.fillStyle = '#ff3333';
+            levelData.obstacles.forEach(obs => ctx.fillRect(obs.x, obs.y, obs.width, obs.height));
+
+            ctx.fillStyle = '#007bff';
+            levelData.portals.forEach(p => ctx.fillRect(p.x, p.y, p.width, p.height));
+
+            requestAnimationFrame(gameLoop);
+        }
     </script>
 </body>
 </html>
