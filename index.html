@@ -16,7 +16,6 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            transition: background-color 0.1s ease;
         }
 
         #version-tag {
@@ -32,7 +31,6 @@
             border: 1px solid #333;
         }
 
-        /* מסך בחירת עולמות */
         .menu-container {
             background: rgba(20, 20, 20, 0.95);
             padding: 30px;
@@ -49,10 +47,8 @@
             font-size: 28px;
             letter-spacing: 1px;
             color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* כפתור ה-CubeNews החדש והמגניב */
         .btn-news {
             display: inline-block;
             background: linear-gradient(135deg, #111 0%, #222 100%);
@@ -65,14 +61,11 @@
             text-decoration: none;
             margin-bottom: 20px;
             transition: 0.2s;
-            box-shadow: 0 0 10px rgba(0, 255, 102, 0.1);
         }
 
         .btn-news:hover {
             background: #00ff66;
             color: black;
-            box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
-            transform: scale(1.03);
         }
 
         .world-list {
@@ -82,7 +75,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            padding-right: 5px;
         }
 
         .world-item {
@@ -93,12 +85,6 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid #444;
-            transition: 0.2s;
-        }
-
-        .world-item:hover {
-            border-color: #00ff66;
-            background: #2a2a2a;
         }
 
         .world-info {
@@ -109,7 +95,6 @@
 
         .world-name {
             font-weight: bold;
-            color: #fff;
         }
 
         .world-meta {
@@ -150,7 +135,6 @@
             color: white;
             border-radius: 6px;
             margin-bottom: 15px;
-            font-size: 14px;
             text-align: center;
         }
 
@@ -163,16 +147,9 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
             width: 85%;
         }
 
-        .btn-main:hover {
-            background: #00cc55;
-            box-shadow: 0 0 12px rgba(0,255,102,0.4);
-        }
-
-        /* אזור המשחק */
         #game-area {
             display: none;
             position: relative;
@@ -182,10 +159,9 @@
             background-color: #111111;
             border: 4px solid #333333;
             border-radius: 12px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
         }
 
-        /* סרגל הכלים של ה-Editor */
+        /* סרגל כלים משודרג */
         #editor-toolbar {
             display: none;
             position: absolute;
@@ -199,7 +175,6 @@
             gap: 10px;
             z-index: 100;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
         #editor-toolbar button {
@@ -209,7 +184,6 @@
             cursor: pointer;
             border-radius: 6px;
             font-weight: bold;
-            transition: 0.1s;
         }
 
         #editor-toolbar button.active {
@@ -224,9 +198,7 @@
 
     <div id="world-menu" class="menu-container">
         <h1>Select World 🌍</h1>
-        
         <a href="news.html" class="btn-news">📰 Read CubeNews Daily</a>
-
         <div class="world-list" id="worlds-container"></div>
         <hr style="border: 1px solid #333; margin: 20px 0;">
         <input type="text" id="new-world-name" placeholder="Enter World Name..." maxlength="15">
@@ -235,8 +207,8 @@
 
     <div id="editor-toolbar">
         <button onclick="setEditorTool('player')" id="tool-player" style="background: #007bff;">👤 Player</button>
-        <button onclick="setEditorTool('obstacle')" id="tool-obstacle" style="background: #222;">🔺 Obstacle</button>
-        <button onclick="setEditorTool('portal')" id="tool-portal" style="background: #222;">🌀 Portal</button>
+        <button onclick="setEditorTool('obstacle')" id="tool-obstacle" style="background: #ff3333;">🔺 Obstacle</button>
+        <button onclick="setEditorTool('portal')" id="tool-portal" style="background: #00ff66;">🌀 Portal</button>
         <button onclick="setEditorTool('eraser')" id="tool-eraser" style="background: #dc3545;">🧽 Eraser</button>
         
         <div style="width: 2px; height: 25px; background: #444; margin: 0 5px;"></div>
@@ -244,7 +216,10 @@
         <button onclick="editorUndo()" style="background: #555;" title="Ctrl + Z">↩️ Undo</button>
         <button onclick="editorRedo()" style="background: #555;" title="Ctrl + Y">↪️ Redo</button>
         
-        <button onclick="exitEditor()" style="background: #28a745; margin-left: 15px;">💾 Save & Exit</button>
+        <div style="width: 2px; height: 25px; background: #444; margin: 0 5px;"></div>
+        
+        <button onclick="startPlaytesting()" style="background: #28a745; color: white;" id="btn-playtest">▶️ START GAME</button>
+        <button onclick="exitEditor()" style="background: #444;">💾 Save & Exit</button>
     </div>
 
     <div id="game-area">
@@ -255,40 +230,35 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // משתני מערכת העולמות והמשחק
+        const GRID_SIZE = 40; // גודל משבצת גריד של 16-ביט
+
         let worlds = JSON.parse(localStorage.getItem('epic_cubed_worlds')) || [];
         let currentWorldIndex = null;
         let isEditorMode = false;
         let currentTool = 'obstacle';
 
-        // מערכת Undo / Redo
         let undoStack = [];
         let redoStack = [];
 
-        // נתוני השלב הנוכחי
         let levelData = {
-            playerStart: { x: 100, y: 300 },
+            playerStart: { x: 80, y: 320 },
             obstacles: [],
             portals: []
         };
 
-        // משתני ריצה למשחק
-        let player = { x: 100, y: 300, width: 30, height: 30, vy: 0, isGrounded: true };
+        let player = { x: 80, y: 320, width: 32, height: 32, vy: 0, isGrounded: true };
         let gameActive = false;
         const gravity = 0.6;
 
-        // טעינה ראשונית של התפריט
         renderWorlds();
 
         function renderWorlds() {
             const container = document.getElementById('worlds-container');
             container.innerHTML = '';
-            
             if (worlds.length === 0) {
                 container.innerHTML = '<div style="color: #666; margin-top: 20px;">No worlds found. Create one below!</div>';
                 return;
             }
-
             worlds.forEach((world, index) => {
                 const item = document.createElement('div');
                 item.className = 'world-item';
@@ -298,7 +268,7 @@
                         <div class="world-meta">Last played: ${world.date}</div>
                     </div>
                     <div class="world-actions">
-                        <button class="btn-edit" onclick="editWorld(${index})" title="Edit World">✏️</button>
+                        <button class="btn-edit" onclick="editWorld(${index})">✏️</button>
                         <button class="btn-delete" onclick="deleteWorld(${index})">🗑️</button>
                     </div>
                 `;
@@ -315,9 +285,9 @@
                 name: name,
                 date: new Date().toLocaleDateString(),
                 level: {
-                    playerStart: { x: 100, y: 330 },
-                    obstacles: [{ x: 400, y: 330, width: 30, height: 30 }, { x: 600, y: 330, width: 30, height: 30 }],
-                    portals: [{ x: 750, y: 310, width: 40, height: 50 }]
+                    playerStart: { x: 80, y: 320 },
+                    obstacles: [{ x: 400, y: 320, width: 40, height: 40 }, { x: 600, y: 320, width: 40, height: 40 }],
+                    portals: [{ x: 720, y: 280, width: 40, height: 80 }]
                 }
             };
 
@@ -333,13 +303,11 @@
             renderWorlds();
         }
 
-        // שמירת מצב בשביל Undo
         function saveHistoryState() {
             undoStack.push(JSON.stringify(levelData));
             redoStack = []; 
         }
 
-        // ביצוע Undo (Ctrl+Z)
         function editorUndo() {
             if (undoStack.length === 0) return;
             redoStack.push(JSON.stringify(levelData));
@@ -347,7 +315,6 @@
             drawEditor();
         }
 
-        // ביצוע Redo (Ctrl+Y)
         function editorRedo() {
             if (redoStack.length === 0) return;
             undoStack.push(JSON.stringify(levelData));
@@ -355,10 +322,10 @@
             drawEditor();
         }
 
-        // כניסה למצב עריכה (העיפרון)
         function editWorld(index) {
             currentWorldIndex = index;
             isEditorMode = true;
+            gameActive = false;
             levelData = worlds[index].level;
             
             undoStack = [];
@@ -367,6 +334,7 @@
             document.getElementById('world-menu').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
             document.getElementById('editor-toolbar').style.display = 'flex';
+            document.getElementById('btn-playtest').innerHTML = "▶️ START GAME";
             
             setEditorTool('obstacle');
             drawEditor();
@@ -375,79 +343,120 @@
         function setEditorTool(tool) {
             currentTool = tool;
             document.querySelectorAll('#editor-toolbar button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`tool-${tool}`).classList.add('active');
+            const targetBtn = document.getElementById(`tool-${tool}`);
+            if (targetBtn) targetBtn.classList.add('active');
         }
 
-        // ציור ה-Editor על המסך
+        // פונקציית ציור הגריד והעורך בסגנון 16-ביט
         function drawEditor() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // ציור רשת משבצות (Grid) ברקע
+            ctx.strokeStyle = '#222222';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += GRID_SIZE) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += GRID_SIZE) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // רצפה מודגשת בגריד
+            ctx.fillStyle = '#2d2d2d';
+            ctx.fillRect(0, 360, canvas.width, 40);
             ctx.strokeStyle = '#444';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(0, 360);
-            ctx.lineTo(canvas.width, 360);
-            ctx.stroke();
+            ctx.strokeRect(0, 360, canvas.width, 40);
 
+            // שחקן (התחלה)
             ctx.fillStyle = '#007bff';
-            ctx.fillRect(levelData.playerStart.x, levelData.playerStart.y, 30, 30);
-            ctx.fillStyle = 'white';
-            ctx.font = '12px sans-serif';
-            ctx.fillText("Start", levelData.playerStart.x - 2, levelData.playerStart.y - 10);
+            ctx.fillRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
+            ctx.strokeStyle = '#ffffff'; ctx.strokeRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
+            ctx.fillStyle = 'white'; ctx.font = '10px monospace';
+            ctx.fillText("START", levelData.playerStart.x - 2, levelData.playerStart.y - 6);
 
+            // מכשולים
             ctx.fillStyle = '#ff3333';
             levelData.obstacles.forEach(obs => {
                 ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                ctx.strokeStyle = '#ff9999'; ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
             });
 
+            // פורטלים
             levelData.portals.forEach(portal => {
                 ctx.fillStyle = '#00ff66';
                 ctx.fillRect(portal.x, portal.y, portal.width, portal.height);
-                ctx.strokeStyle = '#00ff66';
-                ctx.strokeRect(portal.x - 4, portal.y - 4, portal.width + 8, portal.height + 8);
+                ctx.strokeStyle = '#ffffff'; ctx.strokeRect(portal.x, portal.y, portal.width, portal.height);
             });
         }
 
+        // לחיצת עכבר - ננעלת למשבצות גריד מדויקות של 40 פיקסלים
         canvas.addEventListener('mousedown', function(e) {
-            if (!isEditorMode) return;
+            if (!isEditorMode || gameActive) return;
 
             const rect = canvas.getBoundingClientRect();
-            const mouseX = Math.round((e.clientX - rect.left) / 10) * 10; 
-            const mouseY = Math.round((e.clientY - rect.top) / 10) * 10;
+            // חישוב המיקום המדויק לפי פינות המשבצת של ה-Grid
+            const mouseX = Math.floor((e.clientX - rect.left) / GRID_SIZE) * GRID_SIZE;
+            const mouseY = Math.floor((e.clientY - rect.top) / GRID_SIZE) * GRID_SIZE;
 
-            saveHistoryState(); 
+            if (mouseY >= 360) return; // לא בונים בתוך הרצפה
+
+            saveHistoryState();
 
             if (currentTool === 'player') {
-                levelData.playerStart = { x: mouseX - 15, y: mouseY - 15 };
+                levelData.playerStart = { x: mouseX + 4, y: mouseY + 4 }; // ממורכז קצת במשבצת
             } 
             else if (currentTool === 'obstacle') {
-                levelData.obstacles.push({ x: mouseX - 15, y: mouseY - 15, width: 30, height: 30 });
+                // בדיקה שלא קיים כבר מכשול שם
+                levelData.obstacles = levelData.obstacles.filter(obs => obs.x !== mouseX || obs.y !== mouseY);
+                levelData.obstacles.push({ x: mouseX, y: mouseY, width: GRID_SIZE, height: GRID_SIZE });
             } 
             else if (currentTool === 'portal') {
-                levelData.portals.push({ x: mouseX - 20, y: mouseY - 25, width: 40, height: 50 });
+                levelData.portals = levelData.portals.filter(p => p.x !== mouseX || p.y !== mouseY);
+                levelData.portals.push({ x: mouseX, y: mouseY, width: GRID_SIZE, height: GRID_SIZE * 2 }); // פורטל בגובה 2 משבצות
             } 
             else if (currentTool === 'eraser') {
-                levelData.obstacles = levelData.obstacles.filter(obs => 
-                    !(mouseX >= obs.x && mouseX <= obs.x + obs.width && mouseY >= obs.y && mouseY <= obs.y + obs.height)
-                );
-                levelData.portals = levelData.portals.filter(p => 
-                    !(mouseX >= p.x && mouseX <= p.x + p.width && mouseY >= p.y && mouseY <= p.y + p.height)
-                );
+                levelData.obstacles = levelData.obstacles.filter(obs => !(mouseX === obs.x && mouseY === obs.y));
+                levelData.portals = levelData.portals.filter(p => !(mouseX === p.x && (mouseY === p.y || mouseY === p.y + GRID_SIZE)));
             }
 
             drawEditor();
         });
 
-        window.addEventListener('keydown', function(e) {
-            if (!isEditorMode) return;
-
-            if (e.ctrlKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                editorUndo();
+        // כפתור הפעלה ישיר מתוך ה-Editor
+        function startPlaytesting() {
+            if (!gameActive) {
+                // התחלת בדיקה
+                gameActive = true;
+                document.getElementById('btn-playtest').innerHTML = "⏹️ STOP TEST";
+                document.getElementById('btn-playtest').style.background = '#dc3545';
+                
+                player.x = levelData.playerStart.x;
+                player.y = levelData.playerStart.y;
+                player.vy = 0;
+                player.isGrounded = true;
+                
+                gameLoop();
+            } else {
+                // עצירת בדיקה וחזרה לעריכה
+                gameActive = false;
+                document.getElementById('btn-playtest').innerHTML = "▶️ START GAME";
+                document.getElementById('btn-playtest').style.background = '#28a745';
+                drawEditor();
             }
-            if (e.ctrlKey && e.key.toLowerCase() === 'y') {
-                e.preventDefault();
-                editorRedo();
+        }
+
+        // האזנה למקלדת: תמיכה ב-WASD, חצים וקיצורי דרך לעורך
+        window.addEventListener('keydown', function(e) {
+            // קפיצה: רווח, חץ למעלה, או W (עובד גם במשחק רגיל וגם בטסט)
+            if (gameActive && (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && player.isGrounded) {
+                player.vy = -12;
+                player.isGrounded = false;
+            }
+
+            // קיצורי דרך לעורך (רק כשלא בתוך משחק פעיל)
+            if (isEditorMode && !gameActive) {
+                if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); editorUndo(); }
+                if (e.ctrlKey && e.key.toLowerCase() === 'y') { e.preventDefault(); editorRedo(); }
             }
         });
 
@@ -457,6 +466,7 @@
             localStorage.setItem('epic_cubed_worlds', JSON.stringify(worlds));
             
             isEditorMode = false;
+            gameActive = false;
             document.getElementById('editor-toolbar').style.display = 'none';
             document.getElementById('game-area').style.display = 'none';
             document.getElementById('world-menu').style.display = 'block';
@@ -480,57 +490,71 @@
             gameLoop();
         }
 
-        window.addEventListener('keydown', function(e) {
-            if (gameActive && (e.code === 'Space' || e.code === 'ArrowUp') && player.isGrounded) {
-                player.vy = -12;
-                player.isGrounded = false;
-            }
-        });
-
         function gameLoop() {
             if (!gameActive) return;
 
+            // פיזיקה ותנועה
             player.vy += gravity;
             player.y += player.vy;
 
-            if (player.y >= 330) { 
-                player.y = 330;
+            if (player.y >= 328) { 
+                player.y = 328;
                 player.vy = 0;
                 player.isGrounded = true;
             }
 
+            // בדיקת מכשולים
             levelData.obstacles.forEach(obs => {
                 if (player.x < obs.x + obs.width && player.x + player.width > obs.x &&
                     player.y < obs.y + obs.height && player.y + player.height > obs.y) {
+                    // מוות - חזרה להתחלה
                     player.x = levelData.playerStart.x;
                     player.y = levelData.playerStart.y;
+                    player.vy = 0;
                 }
             });
 
+            // בדיקת ניצחון בפורטל
             levelData.portals.forEach(portal => {
                 if (player.x < portal.x + portal.width && player.x + player.width > portal.x &&
                     player.y < portal.y + portal.height && player.y + player.height > portal.y) {
-                    alert("World Completed! 🎉");
                     gameActive = false;
-                    document.getElementById('game-area').style.display = 'none';
-                    document.getElementById('world-menu').style.display = 'block';
-                    renderWorlds();
+                    alert("World Completed! 🎉");
+                    if (isEditorMode) {
+                        startPlaytesting(); // מחזיר למצב עריכה בטסט
+                    } else {
+                        document.getElementById('game-area').style.display = 'none';
+                        document.getElementById('world-menu').style.display = 'block';
+                        renderWorlds();
+                    }
                 }
             });
 
+            // ציור לולאת המשחק
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            ctx.fillStyle = '#333';
+            // רצפה
+            ctx.fillStyle = '#2d2d2d';
             ctx.fillRect(0, 360, canvas.width, 40);
 
+            // שחקן (קוביה ירוקה זוהרת)
             ctx.fillStyle = '#00ff66';
             ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.strokeStyle = '#ffffff'; ctx.strokeRect(player.x, player.y, player.width, player.height);
 
+            // מכשולים
             ctx.fillStyle = '#ff3333';
-            levelData.obstacles.forEach(obs => ctx.fillRect(obs.x, obs.y, obs.width, obs.height));
+            levelData.obstacles.forEach(obs => {
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                ctx.strokeStyle = '#ff9999'; ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+            });
 
+            // פורטלים
             ctx.fillStyle = '#007bff';
-            levelData.portals.forEach(p => ctx.fillRect(p.x, p.y, p.width, p.height));
+            levelData.portals.forEach(p => {
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                ctx.strokeStyle = '#ffffff'; ctx.strokeRect(p.x, p.y, p.width, p.height);
+            });
 
             requestAnimationFrame(gameLoop);
         }
