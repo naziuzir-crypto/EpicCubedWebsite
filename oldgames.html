@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubeOldGames 🕹️ - Retro Classics Archive</title>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+            width: 100%;
+            padding: 25px 0;
+            text-align: center;
+            border-bottom: 3px solid #ff0055;
+            box-shadow: 0 4px 20px rgba(255, 0, 85, 0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 34px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255,0,85,0.5);
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .tab-btn {
+            background: #161616;
+            color: #888;
+            border: 2px solid #333;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+            border-color: #ff0055;
+        }
+
+        .tab-btn.active {
+            background: #ff0055;
+            color: #000;
+            border-color: #ff0055;
+            box-shadow: 0 0 12px rgba(255,0,85,0.4);
+        }
+
+        .game-wrapper {
+            background: #111;
+            border: 4px solid #222;
+            border-radius: 12px;
+            width: 600px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+
+        canvas {
+            background: #151515;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .html-game-ui {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .btn-back {
+            background: #222;
+            color: white;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: 0.2s;
+        }
+
+        .btn-back:hover {
+            border-color: #ff0055;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            color: #444;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CubeOldGames 🕹️</h1>
+        <p style="margin: 5px 0 0 0; color: #666; font-weight: bold;">The Official Retro Classics Archive</p>
+    </header>
+
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchGame('reaction')">⚡ Reaction Time</button>
+        <button class="tab-btn" onclick="switchGame('clicker')">🖱️ Cube Clicker</button>
+        <button class="tab-btn" onclick="switchGame('dragon')">🐉 Cube Run VS Dragon</button>
+    </div>
+
+    <div class="game-wrapper">
+        
+        <div id="ui-reaction" class="html-game-ui" style="display: flex;">
+            <h2 id="reaction-title">Wait for Green... 🟥</h2>
+            <div id="reaction-box" onclick="clickReaction()" style="width: 180px; height: 180px; background: #ff3333; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: black; user-select: none;">START</div>
+            <p id="reaction-result" style="margin-top: 15px; font-weight: bold; color: #aaa;">Click the box when it turns GREEN!</p>
+        </div>
+
+        <div id="ui-clicker" class="html-game-ui">
+            <h2>Cubes Clicked: <span id="click-score">0</span> 🟩</h2>
+            <div onclick="clickCubeTracker()" style="width: 110px; height: 110px; background: #00ff66; border: 3px solid #fff; border-radius: 10px; cursor: pointer; transform: rotate(45deg); transition: 0.1s;" onmousedown="this.style.transform='rotate(45deg) scale(0.9)'" onmouseup="this.style.transform='rotate(45deg) scale(1)'"></div>
+            <p style="margin-top: 25px; color: #888;">Click the cube as fast as you can!</p>
+        </div>
+
+        <canvas id="dragonCanvas" width="600" height="400"></canvas>
+
+    </div>
+
+    <a href="index.html" class="btn-back">⬅️ Back to Main Game</a>
+
+    <footer>
+        &copy; 2026 CubeOldGames Archive. Created by EpicCubedHead.
+    </footer>
+
+    <script>
+        let activeGame = 'reaction';
+        
+        function switchGame(gameType) {
+            activeGame = gameType;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('ui-reaction').style.display = 'none';
+            document.getElementById('ui-clicker').style.display = 'none';
+            document.getElementById('dragonCanvas').style.display = 'none';
+            
+            gameDragonActive = false;
+
+            if (gameType === 'reaction') {
+                document.getElementById('ui-reaction').style.display = 'flex';
+                resetReaction();
+            } else if (gameType === 'clicker') {
+                document.getElementById('ui-clicker').style.display = 'flex';
+            } else if (gameType === 'dragon') {
+                document.getElementById('dragonCanvas').style.display = 'block';
+                startDragonGame();
+            }
+        }
+
+        // --- 1. REACTION TIME CODE ---
+        let reactionTimeout;
+        let startTime;
+        let isGreen = false;
+        let expectingClick = false;
+
+        function resetReaction() {
+            clearTimeout(reactionTimeout);
+            isGreen = false;
+            expectingClick = true;
+            document.getElementById('reaction-box').style.background = '#ff3333';
+            document.getElementById('reaction-box').innerText = 'WAIT...';
+            document.getElementById('reaction-title').innerText = 'Wait for Green... 🟥';
+            
+            let randomTime = Math.random() * 3000 + 2000;
+            reactionTimeout = setTimeout(() => {
+                isGreen = true;
+                document.getElementById('reaction-box').style.background = '#00ff66';
+                document.getElementById('reaction-box').innerText = 'CLICK!';
+                document.getElementById('reaction-title').innerText = 'CLICK!!! 🟩';
+                startTime = Date.now();
+            }, randomTime);
+        }
+
+        function clickReaction() {
+            if (!expectingClick) { resetReaction(); return; }
+            if (!isGreen) {
+                clearTimeout(reactionTimeout);
+                document.getElementById('reaction-title').innerText = 'Too Early! ❌';
+                document.getElementById('reaction-box').innerText = 'RESTART';
+                document.getElementById('reaction-box').style.background = '#ffaa00';
+                expectingClick = false;
+            } else {
+                let score = Date.now() - startTime;
+                document.getElementById('reaction-title').innerText = 'Nice Shot! 🎉';
+                document.getElementById('reaction-result').innerText = `Your reaction time: ${score}ms`;
+                document.getElementById('reaction-box').innerText = 'AGAIN';
+                expectingClick = false;
+            }
+        }
+
+        // --- 2. CUBE CLICKER CODE ---
+        let clickerScore = 0;
+        function clickCubeTracker() {
+            clickerScore++;
+            document.getElementById('click-score').innerText = clickerScore;
+        }
+
+        // --- 3. CUBE RUN VS DRAGON CODE ---
+        const dCanvas = document.getElementById('dragonCanvas');
+        const dCtx = dCanvas.getContext('2d');
+        let gameDragonActive = false;
+
+        let dPlayer = { x: 50, y: 300, w: 30, h: 30, vy: 0, isGrounded: true };
+        let dragon = { x: 450, y: 80, w: 60, h: 60, dir: 1 };
+        let fireballs = [];
+        let dragonScore = 0;
+
+        function startDragonGame() {
+            dPlayer.y = 300; dPlayer.vy = 0; dPlayer.isGrounded = true;
+            fireballs = []; dragonScore = 0;
+            gameDragonActive = true;
+            dragonLoop();
+        }
+
+        window.addEventListener('keydown', function(e) {
+            if (activeGame === 'dragon' && gameDragonActive && (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && dPlayer.isGrounded) {
+                dPlayer.vy = -11;
+                dPlayer.isGrounded = false;
+            }
+        });
+
+        function dragonLoop() {
+            if (!gameDragonActive) return;
+
+            dPlayer.vy += 0.5; dPlayer.y += dPlayer.vy;
+            if (dPlayer.y >= 320) { dPlayer.y = 320; dPlayer.vy = 0; dPlayer.isGrounded = true; }
+
+            dragon.y += dragon.dir * 2;
+            if (dragon.y <= 40 || dragon.y >= 180) dragon.dir *= -1;
+
+            if (Math.random() < 0.02) {
+                fireballs.push({ x: dragon.x, y: dragon.y + 20, speed: Math.random() * 3 + 4 });
+            }
+
+            for (let i = fireballs.length - 1; i >= 0; i--) {
+                fireballs[i].x -= fireballs[i].speed;
+                if (fireballs[i].x < dPlayer.x + dPlayer.w && fireballs[i].x + 15 > dPlayer.x &&
+                    fireballs[i].y < dPlayer.y + dPlayer.h && fireballs[i].y + 15 > dPlayer.y) {
+                    alert(`🔥 Burned! Score: ${dragonScore}`);
+                    startDragonGame();
+                    return;
+                }
+                if (fireballs[i].x < 0) { fireballs.splice(i, 1); dragonScore++; }
+            }
+
+            dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height);
+            dCtx.fillStyle = '#444'; dCtx.fillRect(0, 350, dCanvas.width, 50);
+            dCtx.fillStyle = '#00ff66'; dCtx.fillRect(dPlayer.x, dPlayer.y, dPlayer.w, dPlayer.h);
+            dCtx.fillStyle = '#7700aa'; dCtx.fillRect(dragon.x, dragon.y, dragon.w, dragon.h);
+            dCtx.fillStyle = '#ff0000'; dCtx.fillRect(dragon.x + 10, dragon.y + 15, 8, 8);
+
+            dCtx.fillStyle = '#ff5500';
+            fireballs.forEach(f => { dCtx.beginPath(); dCtx.arc(f.x, f.y, 8, 0, Math.PI * 2); dCtx.fill(); });
+
+            dCtx.fillStyle = '#fff'; dCtx.font = '16px sans-serif';
+            dCtx.fillText(`Score: ${dragonScore}`, 20, 30);
+
+            requestAnimationFrame(dragonLoop);
+        }
+    </script>
+</body>
+</html>
