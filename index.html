@@ -262,6 +262,7 @@
         const GRID_SIZE = 40; 
         const PLAYER_SPEED = 5; 
 
+        // פונקציות הציור של הפיקסל ארט
         function drawPixelObstacle(x, y, w, h) {
             ctx.fillStyle = '#cc0000';
             ctx.beginPath(); ctx.moveTo(x + w/2, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.closePath(); ctx.fill();
