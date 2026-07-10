@@ -207,7 +207,8 @@
     <div id="editor-toolbar">
         <button onclick="setEditorTool('player')" id="tool-player" style="background: #007bff;">👤 Player</button>
         <button onclick="setEditorTool('obstacle')" id="tool-obstacle" style="background: #ff3333;">🔺 Obstacle</button>
-        <button onclick="setEditorTool('portal')" id="tool-portal" style="background: #00ff66;">🌀 Portal</button>
+        <button onclick="setEditorTool('portal')" id="tool-portal" style="background: #a020f0;">🌀 Teleport</button>
+        <button onclick="setEditorTool('trophy')" id="tool-trophy" style="background: #ffd700;">🏆 Trophy</button>
         <button onclick="setEditorTool('eraser')" id="tool-eraser" style="background: #dc3545;">🧽 Eraser</button>
         
         <div style="width: 2px; height: 25px; background: #444; margin: 0 5px;"></div>
@@ -230,7 +231,17 @@
         const ctx = canvas.getContext('2d');
 
         const GRID_SIZE = 40; 
-        const PLAYER_SPEED = 5; // מהירות תנועה לצדדים
+        const PLAYER_SPEED = 5; 
+
+        // --- טעינת הציורים של המשתמש (Base64 מוזן ישירות!) ---
+        const imgPortal = new Image();
+        imgPortal.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADlJREFUWI1jYGBg4GBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGD//8ILeRaAAAAE1FtkSuQmCC";
+
+        const imgObstacle = new Image();
+        imgObstacle.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAA3NCSVQICAjb4U/gAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAD5JREFUWI1jYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGDwA0AoA7fUuWMzUzcQtCVSXzSXSXuoddDAxJjCAmCgDpDY5z03ZGD3h66BlyUiOU9YfqA0At3JXLfj53De3FVOzPIH2bno/19Y+3t/a3zWw3nzpc0bzBgAA//8xOFAAAABk1EQVQDAClRqml1vtNAAAAAAElFTkSuQmCC";
+
+        const imgTrophy = new Image();
+        imgTrophy.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAA1NCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADlJREFUWI1jYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGD//8ILeRaAAAAE1FtkSuQmCC";
 
         let worlds = JSON.parse(localStorage.getItem('epic_cubed_worlds')) || [];
         let currentWorldIndex = null;
@@ -243,11 +254,12 @@
         let levelData = {
             playerStart: { x: 80, y: 320 },
             obstacles: [],
-            portals: []
+            portals: [],  
+            trophies: []   
         };
 
-        let player = { x: 80, y: 320, width: 32, height: 32, vy: 0, vx: 0, isGrounded: true };
-        let keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false }; // מעקב אחר מקשים לחוצים
+        let player = { x: 80, y: 320, width: 32, height: 32, vy: 0, vx: 0, isGrounded: true, lastPortalTime: 0 };
+        let keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false }; 
         let gameActive = false;
         const gravity = 0.6;
 
@@ -287,8 +299,9 @@
                 date: new Date().toLocaleDateString(),
                 level: {
                     playerStart: { x: 80, y: 320 },
-                    obstacles: [{ x: 400, y: 320, width: 40, height: 40 }, { x: 600, y: 320, width: 40, height: 40 }],
-                    portals: [{ x: 720, y: 280, width: 40, height: 80 }]
+                    obstacles: [{ x: 400, y: 320, width: 40, height: 40 }],
+                    portals: [],
+                    trophies: [{ x: 720, y: 320, width: 40, height: 40 }]
                 }
             };
 
@@ -327,7 +340,10 @@
             currentWorldIndex = index;
             isEditorMode = true;
             gameActive = false;
+            
             levelData = worlds[index].level;
+            if (!levelData.portals) levelData.portals = [];
+            if (!levelData.trophies) levelData.trophies = [];
             
             undoStack = [];
             redoStack = [];
@@ -362,25 +378,35 @@
 
             ctx.fillStyle = '#2d2d2d';
             ctx.fillRect(0, 360, canvas.width, 40);
-            ctx.strokeStyle = '#444';
-            ctx.strokeRect(0, 360, canvas.width, 40);
 
             ctx.fillStyle = '#007bff';
             ctx.fillRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
-            ctx.fillStyle = 'white'; ctx.font = '10px monospace';
-            ctx.fillText("START", levelData.playerStart.x - 2, levelData.playerStart.y - 6);
 
-            ctx.fillStyle = '#ff3333';
             levelData.obstacles.forEach(obs => {
-                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-                ctx.strokeStyle = '#ff9999'; ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+                if (imgObstacle.complete) {
+                    ctx.drawImage(imgObstacle, obs.x, obs.y, obs.width, obs.height);
+                } else {
+                    ctx.fillStyle = '#ff3333'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                }
             });
 
-            levelData.portals.forEach(portal => {
-                ctx.fillStyle = '#00ff66';
-                ctx.fillRect(portal.x, portal.y, portal.width, portal.height);
-                ctx.strokeStyle = '#ffffff'; ctx.strokeRect(portal.x, portal.y, portal.width, portal.height);
+            levelData.portals.forEach((portal, i) => {
+                if (imgPortal.complete) {
+                    ctx.drawImage(imgPortal, portal.x, portal.y, portal.width, portal.height);
+                } else {
+                    ctx.fillStyle = '#a020f0'; ctx.fillRect(portal.x, portal.y, portal.width, portal.height);
+                }
+                ctx.fillStyle = 'white'; ctx.font = '10px monospace';
+                ctx.fillText(`P${Math.floor(i/2) + 1}.${(i%2)+1}`, portal.x + 5, portal.y - 4);
+            });
+
+            levelData.trophies.forEach(trophy => {
+                if (imgTrophy.complete) {
+                    ctx.drawImage(imgTrophy, trophy.x, trophy.y, trophy.width, trophy.height);
+                } else {
+                    ctx.fillStyle = '#ffd700'; ctx.fillRect(trophy.x, trophy.y, trophy.width, trophy.height);
+                }
             });
         }
 
@@ -399,20 +425,29 @@
                 levelData.playerStart = { x: mouseX + 4, y: mouseY + 4 };
             } 
             else if (currentTool === 'obstacle') {
-                levelData.obstacles = levelData.obstacles.filter(obs => obs.x !== mouseX || obs.y !== mouseY);
+                clearCell(mouseX, mouseY);
                 levelData.obstacles.push({ x: mouseX, y: mouseY, width: GRID_SIZE, height: GRID_SIZE });
             } 
             else if (currentTool === 'portal') {
-                levelData.portals = levelData.portals.filter(p => p.x !== mouseX || p.y !== mouseY);
-                levelData.portals.push({ x: mouseX, y: mouseY, width: GRID_SIZE, height: GRID_SIZE * 2 });
-            } 
+                clearCell(mouseX, mouseY);
+                levelData.portals.push({ x: mouseX, y: mouseY, width: GRID_SIZE, height: GRID_SIZE });
+            }
+            else if (currentTool === 'trophy') {
+                clearCell(mouseX, mouseY);
+                levelData.trophies.push({ x: mouseX, y: mouseY, width: GRID_SIZE, height: GRID_SIZE });
+            }
             else if (currentTool === 'eraser') {
-                levelData.obstacles = levelData.obstacles.filter(obs => !(mouseX === obs.x && mouseY === obs.y));
-                levelData.portals = levelData.portals.filter(p => !(mouseX === p.x && (mouseY === p.y || mouseY === p.y + GRID_SIZE)));
+                clearCell(mouseX, mouseY);
             }
 
             drawEditor();
         });
+
+        function clearCell(x, y) {
+            levelData.obstacles = levelData.obstacles.filter(obs => obs.x !== x || obs.y !== y);
+            levelData.portals = levelData.portals.filter(p => p.x !== x || p.y !== y);
+            levelData.trophies = levelData.trophies.filter(t => t.x !== x || t.y !== y);
+        }
 
         function startPlaytesting() {
             if (!gameActive) {
@@ -420,47 +455,39 @@
                 document.getElementById('btn-playtest').innerHTML = "⏹️ STOP TEST";
                 document.getElementById('btn-playtest').style.background = '#dc3545';
                 
-                // איפוס מיקום שחקן להתחלה
                 player.x = levelData.playerStart.x;
                 player.y = levelData.playerStart.y;
                 player.vy = 0;
                 player.vx = 0;
                 player.isGrounded = true;
+                player.lastPortalTime = 0;
                 
                 gameLoop();
             } else {
                 gameActive = false;
                 document.getElementById('btn-playtest').innerHTML = "▶️ START GAME";
                 document.getElementById('btn-playtest').style.background = '#28a745';
-                
-                // איפוס מקשים
                 keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false };
                 drawEditor();
             }
         }
 
-        // האזנה למקלדת: מעקב אחרי התחלת לחיצה (KeyDown)
         window.addEventListener('keydown', function(e) {
-            // קפיצה
             if (gameActive && (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && player.isGrounded) {
                 player.vy = -12;
                 player.isGrounded = false;
             }
-
-            // תנועה לצדדים (A/D/חצים)
             if (e.code === 'KeyA') keys.a = true;
             if (e.code === 'KeyD') keys.d = true;
             if (e.code === 'ArrowLeft') keys.ArrowLeft = true;
             if (e.code === 'ArrowRight') keys.ArrowRight = true;
 
-            // קיצורי דרך לעורך
             if (isEditorMode && !gameActive) {
                 if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); editorUndo(); }
                 if (e.ctrlKey && e.key.toLowerCase() === 'y') { e.preventDefault(); editorRedo(); }
             }
         });
 
-        // האזנה למקלדת: מעקב אחרי עזיבת המקש (KeyUp)
         window.addEventListener('keyup', function(e) {
             if (e.code === 'KeyA') keys.a = false;
             if (e.code === 'KeyD') keys.d = false;
@@ -485,6 +512,8 @@
             currentWorldIndex = index;
             isEditorMode = false;
             levelData = worlds[index].level;
+            if (!levelData.portals) levelData.portals = [];
+            if (!levelData.trophies) levelData.trophies = [];
 
             document.getElementById('world-menu').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
@@ -494,6 +523,7 @@
             player.vy = 0;
             player.vx = 0;
             player.isGrounded = true;
+            player.lastPortalTime = 0;
 
             gameActive = true;
             gameLoop();
@@ -502,44 +532,55 @@
         function gameLoop() {
             if (!gameActive) return;
 
-            // חישוב מהירות אופקית (vx) לפי המקשים הלחוצים
             player.vx = 0;
             if (keys.a || keys.ArrowLeft) player.vx = -PLAYER_SPEED;
             if (keys.d || keys.ArrowRight) player.vx = PLAYER_SPEED;
 
-            // פיזיקה ותנועה מלאה (אופקית ואנכית)
             player.vy += gravity;
             player.y += player.vy;
-            player.x += player.vx; // תנועה ימינה/שמאלה
+            player.x += player.vx;
 
-            // התנגשות עם הרצפה
             if (player.y >= 328) { 
                 player.y = 328;
                 player.vy = 0;
                 player.isGrounded = true;
             }
 
-            // גבולות המסך (מניעת יציאה)
             if (player.x < 0) player.x = 0;
             if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
 
-            // בדיקת מכשולים
             levelData.obstacles.forEach(obs => {
                 if (player.x < obs.x + obs.width && player.x + player.width > obs.x &&
                     player.y < obs.y + obs.height && player.y + player.height > obs.y) {
                     player.x = levelData.playerStart.x;
                     player.y = levelData.playerStart.y;
-                    player.vy = 0;
-                    player.vx = 0;
+                    player.vy = 0; player.vx = 0;
                 }
             });
 
-            // בדיקת ניצחון בפורטל
-            levelData.portals.forEach(portal => {
-                if (player.x < portal.x + portal.width && player.x + player.width > portal.x &&
-                    player.y < portal.y + portal.height && player.y + player.height > portal.y) {
+            const now = Date.now();
+            if (now - player.lastPortalTime > 800) { 
+                for (let i = 0; i < levelData.portals.length; i++) {
+                    let portal = levelData.portals[i];
+                    if (player.x < portal.x + portal.width && player.x + player.width > portal.x &&
+                        player.y < portal.y + portal.height && player.y + player.height > portal.y) {
+                        
+                        let targetIndex = (i % 2 === 0) ? i + 1 : i - 1;
+                        if (levelData.portals[targetIndex]) {
+                            player.x = levelData.portals[targetIndex].x;
+                            player.y = levelData.portals[targetIndex].y;
+                            player.lastPortalTime = now;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            levelData.trophies.forEach(trophy => {
+                if (player.x < trophy.x + trophy.width && player.x + player.width > trophy.x &&
+                    player.y < trophy.y + trophy.height && player.y + player.height > trophy.y) {
                     gameActive = false;
-                    alert("World Completed! 🎉");
+                    alert("🏆 WORLD COMPLETED SUCCESSFULLY! 🏆");
                     if (isEditorMode) {
                         startPlaytesting(); 
                     } else {
@@ -559,16 +600,28 @@
             ctx.fillRect(player.x, player.y, player.width, player.height);
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(player.x, player.y, player.width, player.height);
 
-            ctx.fillStyle = '#ff3333';
             levelData.obstacles.forEach(obs => {
-                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-                ctx.strokeStyle = '#ff9999'; ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+                if (imgObstacle.complete) {
+                    ctx.drawImage(imgObstacle, obs.x, obs.y, obs.width, obs.height);
+                } else {
+                    ctx.fillStyle = '#ff3333'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                }
             });
 
-            ctx.fillStyle = '#007bff';
-            levelData.portals.forEach(p => {
-                ctx.fillRect(p.x, p.y, p.width, p.height);
-                ctx.strokeStyle = '#ffffff'; ctx.strokeRect(p.x, p.y, p.width, p.height);
+            levelData.portals.forEach(portal => {
+                if (imgPortal.complete) {
+                    ctx.drawImage(imgPortal, portal.x, portal.y, portal.width, portal.height);
+                } else {
+                    ctx.fillStyle = '#a020f0'; ctx.fillRect(portal.x, portal.y, portal.width, portal.height);
+                }
+            });
+
+            levelData.trophies.forEach(trophy => {
+                if (imgTrophy.complete) {
+                    ctx.drawImage(imgTrophy, trophy.x, trophy.y, trophy.width, trophy.height);
+                } else {
+                    ctx.fillStyle = '#ffd700'; ctx.fillRect(trophy.x, trophy.y, trophy.width, trophy.height);
+                }
             });
 
             requestAnimationFrame(gameLoop);
