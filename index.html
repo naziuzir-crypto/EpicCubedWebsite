@@ -49,7 +49,6 @@
             color: #fff;
         }
 
-        /* סרגל כפתורי הניווט באתר */
         .nav-buttons-container {
             display: flex;
             justify-content: center;
@@ -225,7 +224,7 @@
         
         <div class="nav-buttons-container">
             <a href="news.html" class="btn-news-link">📰 Read CubeNews Daily</a>
-            <a href="https://cube-old-games.vercel.app" class="btn-oldgames-link" target="_blank">🕹️ Play CubeOldGames</a>
+            <a href="https://cube-old-games.vercel.app/" class="btn-oldgames-link">🕹️ Play CubeOldGames</a>
         </div>
 
         <div class="world-list" id="worlds-container"></div>
@@ -263,7 +262,6 @@
         const GRID_SIZE = 40; 
         const PLAYER_SPEED = 5; 
 
-        // פונקציות ציור של הפיקסל ארט שלך (מתוקנות לחלוטין!)
         function drawPixelObstacle(x, y, w, h) {
             ctx.fillStyle = '#cc0000';
             ctx.beginPath();
