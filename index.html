@@ -233,15 +233,28 @@
         const GRID_SIZE = 40; 
         const PLAYER_SPEED = 5; 
 
-        // --- טעינת הציורים של המשתמש (Base64 מוזן ישירות!) ---
-        const imgPortal = new Image();
-        imgPortal.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADlJREFUWI1jYGBg4GBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGD//8ILeRaAAAAE1FtkSuQmCC";
+        // משתני בדיקת טעינה לתמונות (מונע קריסות אדומות!)
+        let isObstacleLoaded = false;
+        let isPortalLoaded = false;
+        let isTrophyLoaded = false;
 
         const imgObstacle = new Image();
+        imgObstacle.onload = function() { isObstacleLoaded = true; };
+        imgObstacle.onerror = function() { isObstacleLoaded = false; };
+        // המכשול האדום המלא מהתמונה שלך (עובד ב-100%)
         imgObstacle.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAA3NCSVQICAjb4U/gAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAD5JREFUWI1jYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGDwA0AoA7fUuWMzUzcQtCVSXzSXSXuoddDAxJjCAmCgDpDY5z03ZGD3h66BlyUiOU9YfqA0At3JXLfj53De3FVOzPIH2bno/19Y+3t/a3zWw3nzpc0bzBgAA//8xOFAAAABk1EQVQDAClRqml1vtNAAAAAAElFTkSuQmCC";
 
+        const imgPortal = new Image();
+        imgPortal.onload = function() { isPortalLoaded = true; };
+        imgPortal.onerror = function() { isPortalLoaded = false; };
+        // מקום פנוי להדבקת קוד הפורטל המלא (תעתיק שוב מהאתר ליתר ביטחון)
+        imgPortal.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADlJREFUWI1jYGBg4GBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGD//8ILeRaAAAAE1FtkSuQmCC";
+
         const imgTrophy = new Image();
-        imgTrophy.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAA1NCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADlJREFUWI1jYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGD//8ILeRaAAAAE1FtkSuQmCC";
+        imgTrophy.onload = function() { isTrophyLoaded = true; };
+        imgTrophy.onerror = function() { isTrophyLoaded = false; };
+        // מקום פנוי להדבקת קוד הגביע המלא (תעתיק שוב מהאתר ליתר ביטחון)
+        imgTrophy.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADlJREFUWI1jYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGD//8ILeRaAAAAE1FtkSuQmCC";
 
         let worlds = JSON.parse(localStorage.getItem('epic_cubed_worlds')) || [];
         let currentWorldIndex = null;
@@ -367,6 +380,7 @@
         function drawEditor() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // גריד ברקע
             ctx.strokeStyle = '#222222';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += GRID_SIZE) {
@@ -376,23 +390,27 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
 
+            // רצפה
             ctx.fillStyle = '#2d2d2d';
             ctx.fillRect(0, 360, canvas.width, 40);
 
+            // שחקן (התחלה)
             ctx.fillStyle = '#007bff';
             ctx.fillRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
 
+            // ציור מכשולים מוגן
             levelData.obstacles.forEach(obs => {
-                if (imgObstacle.complete) {
+                if (isObstacleLoaded) {
                     ctx.drawImage(imgObstacle, obs.x, obs.y, obs.width, obs.height);
                 } else {
                     ctx.fillStyle = '#ff3333'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
                 }
             });
 
+            // ציור פורטלים מוגן
             levelData.portals.forEach((portal, i) => {
-                if (imgPortal.complete) {
+                if (isPortalLoaded) {
                     ctx.drawImage(imgPortal, portal.x, portal.y, portal.width, portal.height);
                 } else {
                     ctx.fillStyle = '#a020f0'; ctx.fillRect(portal.x, portal.y, portal.width, portal.height);
@@ -401,8 +419,9 @@
                 ctx.fillText(`P${Math.floor(i/2) + 1}.${(i%2)+1}`, portal.x + 5, portal.y - 4);
             });
 
+            // ציור גביעים מוגן
             levelData.trophies.forEach(trophy => {
-                if (imgTrophy.complete) {
+                if (isTrophyLoaded) {
                     ctx.drawImage(imgTrophy, trophy.x, trophy.y, trophy.width, trophy.height);
                 } else {
                     ctx.fillStyle = '#ffd700'; ctx.fillRect(trophy.x, trophy.y, trophy.width, trophy.height);
@@ -601,7 +620,7 @@
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(player.x, player.y, player.width, player.height);
 
             levelData.obstacles.forEach(obs => {
-                if (imgObstacle.complete) {
+                if (isObstacleLoaded) {
                     ctx.drawImage(imgObstacle, obs.x, obs.y, obs.width, obs.height);
                 } else {
                     ctx.fillStyle = '#ff3333'; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
@@ -609,7 +628,7 @@
             });
 
             levelData.portals.forEach(portal => {
-                if (imgPortal.complete) {
+                if (isPortalLoaded) {
                     ctx.drawImage(imgPortal, portal.x, portal.y, portal.width, portal.height);
                 } else {
                     ctx.fillStyle = '#a020f0'; ctx.fillRect(portal.x, portal.y, portal.width, portal.height);
@@ -617,7 +636,7 @@
             });
 
             levelData.trophies.forEach(trophy => {
-                if (imgTrophy.complete) {
+                if (isTrophyLoaded) {
                     ctx.drawImage(imgTrophy, trophy.x, trophy.y, trophy.width, trophy.height);
                 } else {
                     ctx.fillStyle = '#ffd700'; ctx.fillRect(trophy.x, trophy.y, trophy.width, trophy.height);
