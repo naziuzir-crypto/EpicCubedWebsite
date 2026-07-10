@@ -20,7 +20,7 @@
         header {
             background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
             width: 100%;
-            padding: 20px 0;
+            padding: 25px 0;
             text-align: center;
             border-bottom: 3px solid #ff0055;
             box-shadow: 0 4px 20px rgba(255, 0, 85, 0.2);
@@ -28,12 +28,11 @@
 
         header h1 {
             margin: 0;
-            font-size: 32px;
+            font-size: 34px;
             letter-spacing: 2px;
             text-shadow: 0 0 10px rgba(255,0,85,0.5);
         }
 
-        /* תפריט בחירת משחקים נוסטלגיים */
         .tabs-container {
             display: flex;
             gap: 15px;
@@ -64,7 +63,6 @@
             box-shadow: 0 0 12px rgba(255,0,85,0.4);
         }
 
-        /* אזור המשחק */
         .game-wrapper {
             background: #111;
             border: 4px solid #222;
@@ -85,7 +83,6 @@
             display: none;
         }
 
-        /* ממשק פשוט למשחקים שלא צריכים קנבס מלא */
         .html-game-ui {
             display: none;
             flex-direction: column;
@@ -95,32 +92,12 @@
             height: 100%;
         }
 
-        .btn-action {
-            background: #ff0055;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        .btn-back {
-            background: #222;
-            color: white;
-            border: 1px solid #444;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            margin: 30px 0;
-            transition: 0.2s;
-        }
-
-        .btn-back:hover {
-            border-color: #ff0055;
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            color: #444;
+            font-size: 12px;
+            text-align: center;
         }
     </style>
 </head>
@@ -128,7 +105,7 @@
 
     <header>
         <h1>CubeOldGames 🕹️</h1>
-        <p style="margin: 5px 0 0 0; color: #666; font-weight: bold;">The Epic Old-School Classics Collection</p>
+        <p style="margin: 5px 0 0 0; color: #666; font-weight: bold;">The Official Retro Classics Archive</p>
     </header>
 
     <div class="tabs-container">
@@ -141,13 +118,13 @@
         
         <div id="ui-reaction" class="html-game-ui" style="display: flex;">
             <h2 id="reaction-title">Wait for Green... 🟥</h2>
-            <div id="reaction-box" onclick="clickReaction()" style="width: 200px; height: 200px; background: #ff3333; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: black;">CLICK ME</div>
+            <div id="reaction-box" onclick="clickReaction()" style="width: 180px; height: 180px; background: #ff3333; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: black; user-select: none;">START</div>
             <p id="reaction-result" style="margin-top: 15px; font-weight: bold; color: #aaa;">Click the box when it turns GREEN!</p>
         </div>
 
         <div id="ui-clicker" class="html-game-ui">
             <h2>Cubes Clicked: <span id="click-score">0</span> 🟩</h2>
-            <div onclick="clickCubeTracker()" style="width: 120px; height: 120px; background: #00ff66; border: 3px solid #fff; border-radius: 10px; cursor: pointer; transform: rotate(45deg); transition: 0.1s;" onmousedown="this.style.transform='rotate(45deg) scale(0.9)'" onmouseup="this.style.transform='rotate(45deg) scale(1)'"></div>
+            <div onclick="clickCubeTracker()" style="width: 110px; height: 110px; background: #00ff66; border: 3px solid #fff; border-radius: 10px; cursor: pointer; transform: rotate(45deg); transition: 0.1s;" onmousedown="this.style.transform='rotate(45deg) scale(0.9)'" onmouseup="this.style.transform='rotate(45deg) scale(1)'"></div>
             <p style="margin-top: 25px; color: #888;">Click the cube as fast as you can!</p>
         </div>
 
@@ -155,28 +132,25 @@
 
     </div>
 
-    <a href="index.html" class="btn-back">⬅️ Back To Main Menu</a>
+    <footer>
+        &copy; 2026 CubeOldGames Archive. Created by EpicCubedHead.
+    </footer>
 
     <script>
-        // ניהול מעבר בין משחקים
         let activeGame = 'reaction';
         
         function switchGame(gameType) {
             activeGame = gameType;
             
-            // איפוס כפתורי תפריט
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            // הסתרת כל ממשקי המשחקים
             document.getElementById('ui-reaction').style.display = 'none';
             document.getElementById('ui-clicker').style.display = 'none';
             document.getElementById('dragonCanvas').style.display = 'none';
             
-            // עצירת לולאות משחק פעילות
             gameDragonActive = false;
 
-            // הפעלת המשחק הנבחר
             if (gameType === 'reaction') {
                 document.getElementById('ui-reaction').style.display = 'flex';
                 resetReaction();
@@ -188,9 +162,7 @@
             }
         }
 
-        // ==========================================
-        // 1. קוד משחק: REACTION TIME
-        // ==========================================
+        // --- 1. REACTION TIME CODE ---
         let reactionTimeout;
         let startTime;
         let isGreen = false;
@@ -204,21 +176,18 @@
             document.getElementById('reaction-box').innerText = 'WAIT...';
             document.getElementById('reaction-title').innerText = 'Wait for Green... 🟥';
             
-            let randomTime = Math.random() * 3000 + 2000; // 2-5 שניות
+            let randomTime = Math.random() * 3000 + 2000;
             reactionTimeout = setTimeout(() => {
                 isGreen = true;
                 document.getElementById('reaction-box').style.background = '#00ff66';
-                document.getElementById('reaction-box').innerText = 'CLICK NOW!';
+                document.getElementById('reaction-box').innerText = 'CLICK!';
                 document.getElementById('reaction-title').innerText = 'CLICK!!! 🟩';
                 startTime = Date.now();
             }, randomTime);
         }
 
         function clickReaction() {
-            if (!expectingClick) {
-                resetReaction();
-                return;
-            }
+            if (!expectingClick) { resetReaction(); return; }
             if (!isGreen) {
                 clearTimeout(reactionTimeout);
                 document.getElementById('reaction-title').innerText = 'Too Early! ❌';
@@ -226,27 +195,22 @@
                 document.getElementById('reaction-box').style.background = '#ffaa00';
                 expectingClick = false;
             } else {
-                let endTime = Date.now();
-                let score = endTime - startTime;
+                let score = Date.now() - startTime;
                 document.getElementById('reaction-title').innerText = 'Nice Shot! 🎉';
                 document.getElementById('reaction-result').innerText = `Your reaction time: ${score}ms`;
-                document.getElementById('reaction-box').innerText = 'PLAY AGAIN';
+                document.getElementById('reaction-box').innerText = 'AGAIN';
                 expectingClick = false;
             }
         }
 
-        // ==========================================
-        // 2. קוד משחק: CUBE CLICKER
-        // ==========================================
+        // --- 2. CUBE CLICKER CODE ---
         let clickerScore = 0;
         function clickCubeTracker() {
             clickerScore++;
             document.getElementById('click-score').innerText = clickerScore;
         }
 
-        // ==========================================
-        // 3. קוד משחק: CUBE RUN VS DRAGON
-        // ==========================================
+        // --- 3. CUBE RUN VS DRAGON CODE ---
         const dCanvas = document.getElementById('dragonCanvas');
         const dCtx = dCanvas.getContext('2d');
         let gameDragonActive = false;
@@ -258,13 +222,11 @@
 
         function startDragonGame() {
             dPlayer.y = 300; dPlayer.vy = 0; dPlayer.isGrounded = true;
-            fireballs = [];
-            dragonScore = 0;
+            fireballs = []; dragonScore = 0;
             gameDragonActive = true;
             dragonLoop();
         }
 
-        // קפיצה במשחק הדרקון (חץ למעלה, רווח, W)
         window.addEventListener('keydown', function(e) {
             if (activeGame === 'dragon' && gameDragonActive && (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && dPlayer.isGrounded) {
                 dPlayer.vy = -11;
@@ -275,57 +237,36 @@
         function dragonLoop() {
             if (!gameDragonActive) return;
 
-            // עדכון שחקן
-            dPlayer.vy += 0.5; // גרביטציה קלה
-            dPlayer.y += dPlayer.vy;
+            dPlayer.vy += 0.5; dPlayer.y += dPlayer.vy;
             if (dPlayer.y >= 320) { dPlayer.y = 320; dPlayer.vy = 0; dPlayer.isGrounded = true; }
 
-            // תנועת דרקון (למעלה ולמטה)
             dragon.y += dragon.dir * 2;
             if (dragon.y <= 40 || dragon.y >= 180) dragon.dir *= -1;
 
-            // יריית כדורי אש מהדרקון
             if (Math.random() < 0.02) {
                 fireballs.push({ x: dragon.x, y: dragon.y + 20, speed: Math.random() * 3 + 4 });
             }
 
-            // עדכון כדורי אש
             for (let i = fireballs.length - 1; i >= 0; i--) {
                 fireballs[i].x -= fireballs[i].speed;
-                // בדיקת פגיעה בשחקן
                 if (fireballs[i].x < dPlayer.x + dPlayer.w && fireballs[i].x + 15 > dPlayer.x &&
                     fireballs[i].y < dPlayer.y + dPlayer.h && fireballs[i].y + 15 > dPlayer.y) {
-                    alert(`🔥 The Dragon roasted you! Score: ${dragonScore}`);
+                    alert(`🔥 Burned! Score: ${dragonScore}`);
                     startDragonGame();
                     return;
                 }
-                // מחיקת כדורי אש שיצאו מהמסך
-                if (fireballs[i].x < 0) {
-                    fireballs.splice(i, 1);
-                    dragonScore++;
-                }
+                if (fireballs[i].x < 0) { fireballs.splice(i, 1); dragonScore++; }
             }
 
-            // ציור
             dCtx.clearRect(0, 0, dCanvas.width, dCanvas.height);
-            
-            // רצפה
             dCtx.fillStyle = '#444'; dCtx.fillRect(0, 350, dCanvas.width, 50);
-
-            // שחקן קוביה נוסטלגי
             dCtx.fillStyle = '#00ff66'; dCtx.fillRect(dPlayer.x, dPlayer.y, dPlayer.w, dPlayer.h);
-
-            // דרקון (ריבוע סגול גדול זמני עם עיניים מרושעות)
             dCtx.fillStyle = '#7700aa'; dCtx.fillRect(dragon.x, dragon.y, dragon.w, dragon.h);
-            dCtx.fillStyle = '#ff0000'; dCtx.fillRect(dragon.x + 10, dragon.y + 15, 8, 8); // עין
+            dCtx.fillStyle = '#ff0000'; dCtx.fillRect(dragon.x + 10, dragon.y + 15, 8, 8);
 
-            // כדורי אש
             dCtx.fillStyle = '#ff5500';
-            fireballs.forEach(f => {
-                dCtx.beginPath(); dCtx.arc(f.x, f.y, 8, 0, Math.PI * 2); dCtx.fill();
-            });
+            fireballs.forEach(f => { dCtx.beginPath(); dCtx.arc(f.x, f.y, 8, 0, Math.PI * 2); dCtx.fill(); });
 
-            // ניקוד
             dCtx.fillStyle = '#fff'; dCtx.font = '16px sans-serif';
             dCtx.fillText(`Score: ${dragonScore}`, 20, 30);
 
