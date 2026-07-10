@@ -39,7 +39,7 @@
             border: 2px solid #333;
             text-align: center;
             min-width: 350px;
-            max-width: 500px;
+            max-width: 550px;
         }
 
         h1 {
@@ -49,23 +49,48 @@
             color: #fff;
         }
 
-        .btn-news {
+        /* סרגל כפתורי הניווט באתר */
+        .nav-buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn-news-link {
             display: inline-block;
             background: linear-gradient(135deg, #111 0%, #222 100%);
             color: #00ff66;
             border: 2px solid #00ff66;
-            padding: 10px 20px;
-            font-size: 14px;
+            padding: 10px 16px;
+            font-size: 13px;
             font-weight: bold;
             border-radius: 8px;
             text-decoration: none;
-            margin-bottom: 20px;
             transition: 0.2s;
         }
 
-        .btn-news:hover {
+        .btn-news-link:hover {
             background: #00ff66;
             color: black;
+        }
+
+        .btn-oldgames-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #111 0%, #222 100%);
+            color: #ff0055;
+            border: 2px solid #ff0055;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .btn-oldgames-link:hover {
+            background: #ff0055;
+            color: white;
         }
 
         .world-list {
@@ -197,7 +222,12 @@
 
     <div id="world-menu" class="menu-container">
         <h1>Select World 🌍</h1>
-        <a href="news.html" class="btn-news">📰 Read CubeNews Daily</a>
+        
+        <div class="nav-buttons-container">
+            <a href="news.html" class="btn-news-link">📰 Read CubeNews Daily</a>
+            <a href="https://cube-old-games.vercel.app" class="btn-oldgames-link" target="_blank">🕹️ Play CubeOldGames</a>
+        </div>
+
         <div class="world-list" id="worlds-container"></div>
         <hr style="border: 1px solid #333; margin: 20px 0;">
         <input type="text" id="new-world-name" placeholder="Enter World Name..." maxlength="15">
@@ -233,9 +263,8 @@
         const GRID_SIZE = 40; 
         const PLAYER_SPEED = 5; 
 
-        // --- פונקציות ציור פיקסל ארט ישירות (0 שגיאות אדומות!) ---
+        // פונקציות ציור חסינות לקריסות (מציירות את הפיקסל ארט שלך ישירות!)
         function drawPixelObstacle(x, y, w, h) {
-            // משולש אדום עם קו מתאר שחור פנימי ונקודות כהות כמו בציור שלך
             ctx.fillStyle = '#cc0000';
             ctx.beginPath();
             ctx.moveTo(x + w/2, y);
@@ -244,12 +273,10 @@
             ctx.closePath();
             ctx.fill();
 
-            // קו מתאר אדום בהיר
             ctx.strokeStyle = '#ff3333';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // הפיקסלים הכהים שבתוך המשולש
             ctx.fillStyle = '#550000';
             ctx.fillRect(x + w/2 - 3, y + h/2, 6, 4);
             ctx.fillRect(x + w/4, y + h - 12, 5, 4);
@@ -257,38 +284,30 @@
         }
 
         function drawPixelPortal(x, y, w, h) {
-            // פורטל סגול מפוספס בדיוק כמו בציור המקורי שלך
             ctx.fillStyle = '#510066';
             ctx.fillRect(x + 4, y, w - 8, h);
             
-            // פסים סגולים בהירים וכהים לסירוגין
             ctx.fillStyle = '#a100cc';
             for(let i = 4; i < h; i += 8) {
                 ctx.fillRect(x + 4, y + i, w - 8, 3);
             }
 
-            // קו מסגרת מפוקסל
             ctx.strokeStyle = '#ff66ff';
             ctx.lineWidth = 2;
             ctx.strokeRect(x + 4, y, w - 8, h);
         }
 
         function drawPixelTrophy(x, y, w, h) {
-            // גביע מוזהב מדורג עם קו מתאר שחור עבה ורקע אפור בדיוק כמו ב-Piskel שלך!
-            ctx.fillStyle = '#b5b5b5'; // רקע אפור פנימי
+            ctx.fillStyle = '#b5b5b5'; 
             ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
 
-            ctx.fillStyle = '#ffff00'; // זהב בוהק
-            // בסיס
+            ctx.fillStyle = '#ffff00'; 
             ctx.fillRect(x + 8, y + h - 12, w - 16, 6);
-            // גוף מדורג
             ctx.fillRect(x + 12, y + h - 20, w - 24, 8);
             ctx.fillRect(x + 16, y + h - 28, w - 32, 8);
-            // ראש הגביע (הצלב/עליון)
             ctx.fillRect(x + w/2 - 3, y + 8, 6, 12);
             ctx.fillRect(x + w/2 - 8, y + 11, 16, 4);
 
-            // מסגרת שחורה עבה
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 3;
             ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
@@ -418,7 +437,6 @@
         function drawEditor() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // גריד ברקע
             ctx.strokeStyle = '#222222';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += GRID_SIZE) {
@@ -428,28 +446,23 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
 
-            // רצפה
             ctx.fillStyle = '#2d2d2d';
             ctx.fillRect(0, 360, canvas.width, 40);
 
-            // שחקן (התחלה)
             ctx.fillStyle = '#007bff';
             ctx.fillRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
 
-            // ציור מכשולים
             levelData.obstacles.forEach(obs => {
                 drawPixelObstacle(obs.x, obs.y, obs.width, obs.height);
             });
 
-            // ציור פורטלים
             levelData.portals.forEach((portal, i) => {
                 drawPixelPortal(portal.x, portal.y, portal.width, portal.height);
                 ctx.fillStyle = 'white'; ctx.font = '10px monospace';
                 ctx.fillText(`P${Math.floor(i/2) + 1}.${(i%2)+1}`, portal.x + 5, portal.y - 4);
             });
 
-            // ציור גביעים
             levelData.trophies.forEach(trophy => {
                 drawPixelTrophy(trophy.x, trophy.y, trophy.width, trophy.height);
             });
