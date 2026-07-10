@@ -224,7 +224,7 @@
         
         <div class="nav-buttons-container">
             <a href="news.html" class="btn-news-link">📰 Read CubeNews Daily</a>
-            <a href="https://cube-old-games.vercel.app/" class="btn-oldgames-link">🕹️ Play CubeOldGames</a>
+            <a href="https://cube-old-games.vercel.app" class="btn-oldgames-link">🕹️ Play CubeOldGames</a>
         </div>
 
         <div class="world-list" id="worlds-container"></div>
@@ -385,7 +385,6 @@
             renderWorlds();
         }
 
-        // שמירה בשביל אנדו
         function saveHistoryState() {
             undoStack.push(JSON.stringify(levelData));
             redoStack = []; 
