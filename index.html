@@ -161,7 +161,6 @@
             border-radius: 12px;
         }
 
-        /* סרגל כלים משודרג */
         #editor-toolbar {
             display: none;
             position: absolute;
@@ -230,7 +229,8 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        const GRID_SIZE = 40; // גודל משבצת גריד של 16-ביט
+        const GRID_SIZE = 40; 
+        const PLAYER_SPEED = 5; // מהירות תנועה לצדדים
 
         let worlds = JSON.parse(localStorage.getItem('epic_cubed_worlds')) || [];
         let currentWorldIndex = null;
@@ -246,7 +246,8 @@
             portals: []
         };
 
-        let player = { x: 80, y: 320, width: 32, height: 32, vy: 0, isGrounded: true };
+        let player = { x: 80, y: 320, width: 32, height: 32, vy: 0, vx: 0, isGrounded: true };
+        let keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false }; // מעקב אחר מקשים לחוצים
         let gameActive = false;
         const gravity = 0.6;
 
@@ -347,11 +348,9 @@
             if (targetBtn) targetBtn.classList.add('active');
         }
 
-        // פונקציית ציור הגריד והעורך בסגנון 16-ביט
         function drawEditor() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // ציור רשת משבצות (Grid) ברקע
             ctx.strokeStyle = '#222222';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += GRID_SIZE) {
@@ -361,27 +360,23 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
 
-            // רצפה מודגשת בגריד
             ctx.fillStyle = '#2d2d2d';
             ctx.fillRect(0, 360, canvas.width, 40);
             ctx.strokeStyle = '#444';
             ctx.strokeRect(0, 360, canvas.width, 40);
 
-            // שחקן (התחלה)
             ctx.fillStyle = '#007bff';
             ctx.fillRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(levelData.playerStart.x, levelData.playerStart.y, 32, 32);
             ctx.fillStyle = 'white'; ctx.font = '10px monospace';
             ctx.fillText("START", levelData.playerStart.x - 2, levelData.playerStart.y - 6);
 
-            // מכשולים
             ctx.fillStyle = '#ff3333';
             levelData.obstacles.forEach(obs => {
                 ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
                 ctx.strokeStyle = '#ff9999'; ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
             });
 
-            // פורטלים
             levelData.portals.forEach(portal => {
                 ctx.fillStyle = '#00ff66';
                 ctx.fillRect(portal.x, portal.y, portal.width, portal.height);
@@ -389,30 +384,27 @@
             });
         }
 
-        // לחיצת עכבר - ננעלת למשבצות גריד מדויקות של 40 פיקסלים
         canvas.addEventListener('mousedown', function(e) {
             if (!isEditorMode || gameActive) return;
 
             const rect = canvas.getBoundingClientRect();
-            // חישוב המיקום המדויק לפי פינות המשבצת של ה-Grid
             const mouseX = Math.floor((e.clientX - rect.left) / GRID_SIZE) * GRID_SIZE;
             const mouseY = Math.floor((e.clientY - rect.top) / GRID_SIZE) * GRID_SIZE;
 
-            if (mouseY >= 360) return; // לא בונים בתוך הרצפה
+            if (mouseY >= 360) return; 
 
             saveHistoryState();
 
             if (currentTool === 'player') {
-                levelData.playerStart = { x: mouseX + 4, y: mouseY + 4 }; // ממורכז קצת במשבצת
+                levelData.playerStart = { x: mouseX + 4, y: mouseY + 4 };
             } 
             else if (currentTool === 'obstacle') {
-                // בדיקה שלא קיים כבר מכשול שם
                 levelData.obstacles = levelData.obstacles.filter(obs => obs.x !== mouseX || obs.y !== mouseY);
                 levelData.obstacles.push({ x: mouseX, y: mouseY, width: GRID_SIZE, height: GRID_SIZE });
             } 
             else if (currentTool === 'portal') {
                 levelData.portals = levelData.portals.filter(p => p.x !== mouseX || p.y !== mouseY);
-                levelData.portals.push({ x: mouseX, y: mouseY, width: GRID_SIZE, height: GRID_SIZE * 2 }); // פורטל בגובה 2 משבצות
+                levelData.portals.push({ x: mouseX, y: mouseY, width: GRID_SIZE, height: GRID_SIZE * 2 });
             } 
             else if (currentTool === 'eraser') {
                 levelData.obstacles = levelData.obstacles.filter(obs => !(mouseX === obs.x && mouseY === obs.y));
@@ -422,42 +414,58 @@
             drawEditor();
         });
 
-        // כפתור הפעלה ישיר מתוך ה-Editor
         function startPlaytesting() {
             if (!gameActive) {
-                // התחלת בדיקה
                 gameActive = true;
                 document.getElementById('btn-playtest').innerHTML = "⏹️ STOP TEST";
                 document.getElementById('btn-playtest').style.background = '#dc3545';
                 
+                // איפוס מיקום שחקן להתחלה
                 player.x = levelData.playerStart.x;
                 player.y = levelData.playerStart.y;
                 player.vy = 0;
+                player.vx = 0;
                 player.isGrounded = true;
                 
                 gameLoop();
             } else {
-                // עצירת בדיקה וחזרה לעריכה
                 gameActive = false;
                 document.getElementById('btn-playtest').innerHTML = "▶️ START GAME";
                 document.getElementById('btn-playtest').style.background = '#28a745';
+                
+                // איפוס מקשים
+                keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false };
                 drawEditor();
             }
         }
 
-        // האזנה למקלדת: תמיכה ב-WASD, חצים וקיצורי דרך לעורך
+        // האזנה למקלדת: מעקב אחרי התחלת לחיצה (KeyDown)
         window.addEventListener('keydown', function(e) {
-            // קפיצה: רווח, חץ למעלה, או W (עובד גם במשחק רגיל וגם בטסט)
+            // קפיצה
             if (gameActive && (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && player.isGrounded) {
                 player.vy = -12;
                 player.isGrounded = false;
             }
 
-            // קיצורי דרך לעורך (רק כשלא בתוך משחק פעיל)
+            // תנועה לצדדים (A/D/חצים)
+            if (e.code === 'KeyA') keys.a = true;
+            if (e.code === 'KeyD') keys.d = true;
+            if (e.code === 'ArrowLeft') keys.ArrowLeft = true;
+            if (e.code === 'ArrowRight') keys.ArrowRight = true;
+
+            // קיצורי דרך לעורך
             if (isEditorMode && !gameActive) {
                 if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); editorUndo(); }
                 if (e.ctrlKey && e.key.toLowerCase() === 'y') { e.preventDefault(); editorRedo(); }
             }
+        });
+
+        // האזנה למקלדת: מעקב אחרי עזיבת המקש (KeyUp)
+        window.addEventListener('keyup', function(e) {
+            if (e.code === 'KeyA') keys.a = false;
+            if (e.code === 'KeyD') keys.d = false;
+            if (e.code === 'ArrowLeft') keys.ArrowLeft = false;
+            if (e.code === 'ArrowRight') keys.ArrowRight = false;
         });
 
         function exitEditor() {
@@ -484,6 +492,7 @@
             player.x = levelData.playerStart.x;
             player.y = levelData.playerStart.y;
             player.vy = 0;
+            player.vx = 0;
             player.isGrounded = true;
 
             gameActive = true;
@@ -493,24 +502,35 @@
         function gameLoop() {
             if (!gameActive) return;
 
-            // פיזיקה ותנועה
+            // חישוב מהירות אופקית (vx) לפי המקשים הלחוצים
+            player.vx = 0;
+            if (keys.a || keys.ArrowLeft) player.vx = -PLAYER_SPEED;
+            if (keys.d || keys.ArrowRight) player.vx = PLAYER_SPEED;
+
+            // פיזיקה ותנועה מלאה (אופקית ואנכית)
             player.vy += gravity;
             player.y += player.vy;
+            player.x += player.vx; // תנועה ימינה/שמאלה
 
+            // התנגשות עם הרצפה
             if (player.y >= 328) { 
                 player.y = 328;
                 player.vy = 0;
                 player.isGrounded = true;
             }
 
+            // גבולות המסך (מניעת יציאה)
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+
             // בדיקת מכשולים
             levelData.obstacles.forEach(obs => {
                 if (player.x < obs.x + obs.width && player.x + player.width > obs.x &&
                     player.y < obs.y + obs.height && player.y + player.height > obs.y) {
-                    // מוות - חזרה להתחלה
                     player.x = levelData.playerStart.x;
                     player.y = levelData.playerStart.y;
                     player.vy = 0;
+                    player.vx = 0;
                 }
             });
 
@@ -521,7 +541,7 @@
                     gameActive = false;
                     alert("World Completed! 🎉");
                     if (isEditorMode) {
-                        startPlaytesting(); // מחזיר למצב עריכה בטסט
+                        startPlaytesting(); 
                     } else {
                         document.getElementById('game-area').style.display = 'none';
                         document.getElementById('world-menu').style.display = 'block';
@@ -530,26 +550,21 @@
                 }
             });
 
-            // ציור לולאת המשחק
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // רצפה
             ctx.fillStyle = '#2d2d2d';
             ctx.fillRect(0, 360, canvas.width, 40);
 
-            // שחקן (קוביה ירוקה זוהרת)
             ctx.fillStyle = '#00ff66';
             ctx.fillRect(player.x, player.y, player.width, player.height);
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(player.x, player.y, player.width, player.height);
 
-            // מכשולים
             ctx.fillStyle = '#ff3333';
             levelData.obstacles.forEach(obs => {
                 ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
                 ctx.strokeStyle = '#ff9999'; ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
             });
 
-            // פורטלים
             ctx.fillStyle = '#007bff';
             levelData.portals.forEach(p => {
                 ctx.fillRect(p.x, p.y, p.width, p.height);
