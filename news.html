@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubeNews 📰 - EpicCubedHead Daily Updates</title>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e1e1e 0%, #111111 100%);
+            width: 100%;
+            padding: 30px 0;
+            text-align: center;
+            border-bottom: 3px solid #00ff66;
+            box-shadow: 0 4px 20px rgba(0, 255, 102, 0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 36px;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0,255,102,0.5);
+        }
+
+        header p {
+            margin: 5px 0 0 0;
+            color: #888;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .news-container {
+            max-width: 800px;
+            width: 90%;
+            margin: 40px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .news-card {
+            background: #161616;
+            border: 1px solid #2d2d2d;
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+
+        .news-card:hover {
+            border-color: #00ff66;
+            transform: translateY(-2px);
+        }
+
+        .news-tag {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: #00ff66;
+            color: black;
+            font-weight: bold;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        .news-date {
+            color: #888;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .news-title {
+            margin: 0 0 15px 0;
+            font-size: 22px;
+            color: #fff;
+        }
+
+        .news-content {
+            color: #ccc;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .btn-back {
+            background: #222;
+            color: white;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #333;
+            border-color: #00ff66;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            color: #555;
+            font-size: 12px;
+            text-align: center;
+            border-top: 1px solid #222;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CubeNews 📰</h1>
+        <p>The Official Daily Source for EpicCubedHead Updates</p>
+    </header>
+
+    <div class="news-container">
+        
+        <div class="news-card">
+            <span class="news-tag">Latest Update</span>
+            <div class="news-date">JULY 10, 2026</div>
+            <h2 class="news-title">🚀 Version 1.0.5: The Level Editor Update is HERE!</h2>
+            <div class="news-content">
+                <p>Gamers, the biggest update yet has just dropped! We just implemented a complete <strong>Level Editor Mode</strong> inside the game. Now you can click the pencil icon next to your world and start building your own custom maps for Cube Head Run! 📐✏️</p>
+                <p><strong>What's inside the Editor:</strong><br>
+                • Place or erase obstacles, change the player start location, and add custom victory portals! 🌀<br>
+                • Full system of <strong>Undo (Ctrl + Z)</strong> and <strong>Redo (Ctrl + Y)</strong> so you can build like a professional game developer! ↩️↪️</p>
+                <p>Go back to the main menu, update your files, and show us what maps you can build! 🔥</p>
+            </div>
+        </div>
+
+        <div class="news-card" style="opacity: 0.6;">
+            <div class="news-date">JULY 9, 2026</div>
+            <h2 class="news-title">🌍 Version 1.0: Minecraft World Saving Implemented</h2>
+            <div class="news-content">
+                <p>We successfully transitioned to version 1.0! Players can now finally create, name, and save their data into individual worlds. No more lost progress for your hard-earned Cubes!</p>
+            </div>
+        </div>
+
+        <a href="index.html" class="btn-back">⬅️ Back To Game</a>
+
+    </div>
+
+    <footer>
+        &copy; 2026 EpicCubedHead. All Rights Reserved.
+    </footer>
+
+</body>
+</html>
