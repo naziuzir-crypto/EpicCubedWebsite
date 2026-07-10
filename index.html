@@ -423,9 +423,9 @@
         });
 
         function clearCell(x, y) {
-            levelData.obstacles = levelData.obstacles.filter(obs => obs.x !== x || y !== obs.y);
-            levelData.portals = levelData.portals.filter(p => p.x !== x || y !== p.y);
-            levelData.trophies = levelData.trophies.filter(t => t.x !== x || y !== t.y);
+            levelData.obstacles = levelData.obstacles.filter(obs => obs.x !== x || obs.y !== y);
+            levelData.portals = levelData.portals.filter(p => p.x !== x || p.y !== y);
+            levelData.trophies = levelData.trophies.filter(t => t.x !== x || t.y !== y);
         }
 
         function startPlaytesting() {
